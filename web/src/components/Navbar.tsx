@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User, LogIn } from 'lucide-react';
+import { Menu, X, User, LogIn, MessageCircle } from 'lucide-react';
+import NotificationBell from './NotificationBell';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -38,24 +39,32 @@ const Navbar = () => {
 
                     {/* Desktop Menu */}
                     <div className="hidden md:flex items-center gap-8">
-                        <Link to="/" className={`font-medium hover:text-primary transition-colors ${scrolled || location.pathname !== '/' ? 'text-gray-600' : 'text-white/90 hover:text-white'
+                        <Link to="/" className={`font-medium hover:text-primary transition-colors ${scrolled || location.pathname !== '/' ? 'text-gray-600' : 'text-green-900 hover:text-green-700'
                             }`}>
                             Início
                         </Link>
-                        <Link to="/catalogo" className={`font-medium hover:text-primary transition-colors ${scrolled || location.pathname !== '/' ? 'text-gray-600' : 'text-white/90 hover:text-white'
+                        <Link to="/catalogo" className={`font-medium hover:text-primary transition-colors ${scrolled || location.pathname !== '/' ? 'text-gray-600' : 'text-green-900 hover:text-green-700'
                             }`}>
                             Catálogo
                         </Link>
 
                         {user ? (
-                            <Link to="/painel" className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-full font-semibold hover:bg-green-700 transition-all shadow-lg hover:shadow-green-200/50 transform hover:-translate-y-0.5">
-                                <User size={18} />
-                                Painel
-                            </Link>
+                            <div className="flex items-center gap-4">
+                                <Link to="/painel/chat" className={`p-2 transition-colors ${scrolled || location.pathname !== '/' ? 'text-gray-600 hover:text-primary' : 'text-green-900 hover:text-green-700'}`} aria-label="Mensagens">
+                                    <MessageCircle size={20} />
+                                </Link>
+                                <div className={scrolled || location.pathname !== '/' ? 'text-gray-600' : 'text-green-900'}>
+                                    <NotificationBell />
+                                </div>
+                                <Link to="/painel" className="btn-gradient flex items-center gap-2 px-5 py-2.5 text-white rounded-full font-semibold shadow-lg shadow-green-200/50 transform hover:-translate-y-0.5">
+                                    <User size={18} />
+                                    Painel
+                                </Link>
+                            </div>
                         ) : (
                             <Link to="/login" className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold transition-all transform hover:-translate-y-0.5 ${scrolled || location.pathname !== '/'
-                                    ? 'bg-primary text-white hover:bg-green-700 shadow-lg hover:shadow-green-200/50'
-                                    : 'bg-white text-primary hover:bg-gray-100 shadow-lg'
+                                ? 'bg-primary text-white hover:bg-green-700 shadow-lg hover:shadow-green-200/50'
+                                : 'bg-white text-primary hover:bg-gray-100 shadow-lg'
                                 }`}>
                                 <LogIn size={18} />
                                 Entrar
@@ -66,7 +75,7 @@ const Navbar = () => {
                     {/* Mobile Menu Button */}
                     <button
                         onClick={() => setIsOpen(!isOpen)}
-                        className={`md:hidden p-2 rounded-lg transition-colors ${scrolled || location.pathname !== '/' ? 'text-gray-800' : 'text-white'
+                        className={`md:hidden p-2 rounded-lg transition-colors ${scrolled || location.pathname !== '/' ? 'text-gray-800' : 'text-green-900'
                             }`}
                     >
                         {isOpen ? <X size={24} /> : <Menu size={24} />}

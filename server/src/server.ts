@@ -5,6 +5,8 @@ import authRoutes from './routes/authRoutes';
 import itemRoutes from './routes/itemRoutes';
 import requestRoutes from './routes/requestRoutes';
 import uploadRoutes from './routes/uploadRoutes';
+import chatRoutes from './routes/chatRoutes';
+import notificationRoutes from './routes/notificationRoutes';
 import path from 'path';
 
 const app = express();
@@ -24,6 +26,8 @@ app.use('/auth', authRoutes);
 app.use('/items', itemRoutes);
 app.use('/requests', requestRoutes);
 app.use('/upload', uploadRoutes);
+app.use('/chat', chatRoutes);
+app.use('/notifications', notificationRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);

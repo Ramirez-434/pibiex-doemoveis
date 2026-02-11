@@ -1,20 +1,62 @@
+import { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { PlusCircle, Package, HeartHandshake, User, LogOut } from 'lucide-react';
+import { PlusCircle, Package, HeartHandshake, User, LogOut, MessageCircle, Camera } from 'lucide-react';
+import api from '../services/api';
 
 const Dashboard = () => {
     const location = useLocation();
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const [user, setUser] = useState(JSON.parse(localStorage.getItem('user') || '{}'));
+    const [uploading, setUploading] = useState(false);
 
     const menuItems = [
         { path: '/painel/novo-item', label: 'Doar Novo Item', icon: PlusCircle },
         { path: '/painel/minhas-doacoes', label: 'Minhas Doações', icon: Package },
         { path: '/painel/solicitacoes', label: 'Minhas Solicitações', icon: HeartHandshake },
+        { path: '/painel/chat', label: 'Mensagens', icon: MessageCircle },
     ];
 
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         window.location.href = '/login';
+    };
+
+    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploading(true);
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+            // 1. Upload image
+            const uploadRes = await api.post('/upload', formData);
+            const avatarUrl = uploadRes.data.url;
+
+            // 2. Update profile
+            const updateRes = await api.patch('/auth/profile', { avatar: avatarUrl });
+
+            // 3. Update local state and storage
+            const updatedUser = { ...user, avatar: avatarUrl };
+            setUser(updatedUser);
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+
+            // Optional: Trigger a custom event or use context to update Navbar if needed
+            window.dispatchEvent(new Event('storage'));
+
+        } catch (error: any) {
+            console.error('Error updating avatar:', error);
+            if (error.response) {
+                console.error('Server response:', error.response.data);
+                // Alert with specific message from server
+                alert(`Erro: ${error.response.data.error || JSON.stringify(error.response.data)}`);
+            } else {
+                alert('Erro de conexão ou erro desconhecido.');
+            }
+        } finally {
+            setUploading(false);
+        }
     };
 
     return (
@@ -25,8 +67,25 @@ const Dashboard = () => {
                     <aside className="lg:w-72 flex-shrink-0 animate-fade-in-up">
                         <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 mb-6 sticky top-28">
                             <div className="flex items-center gap-4 mb-8 pb-6 border-b border-gray-100">
-                                <div className="w-14 h-14 bg-gradient-to-br from-primary to-green-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-green-200">
-                                    <User size={28} />
+                                <div className="relative group cursor-pointer">
+                                    <div className="w-14 h-14 rounded-full overflow-hidden shadow-lg shadow-green-200 border-2 border-white">
+                                        {user.avatar ? (
+                                            <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full bg-gradient-to-br from-primary to-green-600 flex items-center justify-center text-white">
+                                                <User size={28} />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <label className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white">
+                                        <Camera size={16} />
+                                        <input type="file" className="hidden" accept="image/*" onChange={handleAvatarChange} disabled={uploading} />
+                                    </label>
+                                    {uploading && (
+                                        <div className="absolute inset-0 bg-white/60 rounded-full flex items-center justify-center">
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="overflow-hidden">
                                     <h3 className="font-bold text-gray-800 text-lg truncate">{user.name}</h3>

@@ -22,7 +22,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    limits: { fileSize: 7 * 1024 * 1024 }, // 7MB limit
     fileFilter: (req, file, cb) => {
         const filetypes = /jpeg|jpg|png|webp/;
         const mimetype = filetypes.test(file.mimetype);
@@ -35,13 +35,26 @@ const upload = multer({
     }
 });
 
-router.post('/', upload.single('image'), (req, res) => {
+import { authenticateToken } from '../middleware/authMiddleware';
+
+router.post('/', authenticateToken, (req, res, next) => {
+    console.log('DEBUG: Upload request received');
+    upload.single('image')(req, res, (err) => {
+        if (err) {
+            console.error('DEBUG: Multer error:', err);
+            return res.status(400).json({ error: err.message });
+        }
+        next();
+    });
+}, (req, res) => {
+    console.log('DEBUG: File uploaded:', req.file);
     if (!req.file) {
         return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
     }
 
     // Return the public URL
     const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    console.log('DEBUG: File URL:', fileUrl);
     res.json({ url: fileUrl });
 });
 

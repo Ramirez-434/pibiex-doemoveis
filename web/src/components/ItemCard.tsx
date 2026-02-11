@@ -14,7 +14,7 @@ interface ItemProps {
 
 const ItemCard = ({ item }: { item: ItemProps }) => {
     return (
-        <div className="group bg-white rounded-3xl shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 flex flex-col h-full transform hover:-translate-y-2">
+        <div className="group bg-white rounded-3xl shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 flex flex-col h-full transform hover:-translate-y-2 hover:rotate-1">
             <div className="h-64 bg-gray-100 relative overflow-hidden">
                 {item.images[0] ? (
                     <img

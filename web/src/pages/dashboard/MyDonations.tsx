@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Package, Clock, CheckCircle } from 'lucide-react';
+import { Package, Clock, CheckCircle, MessageCircle } from 'lucide-react';
 import api from '../../services/api';
+import ChatWindow from '../../components/ChatWindow';
 
 interface Item {
     id: string;
@@ -14,6 +15,7 @@ interface Item {
 const MyDonations = () => {
     const [items, setItems] = useState<Item[]>([]);
     const [loading, setLoading] = useState(true);
+    const [activeChat, setActiveChat] = useState<{ requestId: string; itemName: string; otherUserName: string } | null>(null);
     const user = JSON.parse(localStorage.getItem('user') || '{}');
 
     useEffect(() => {
@@ -103,6 +105,13 @@ const MyDonations = () => {
                                 >
                                     Excluir
                                 </button>
+
+                                <Link
+                                    to={`/painel/solicitacoes?itemId=${item.id}`}
+                                    className="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors flex items-center gap-1"
+                                >
+                                    <MessageCircle size={16} /> Ver Interessados
+                                </Link>
                             </div>
                         </div>
                     ))}
@@ -121,6 +130,15 @@ const MyDonations = () => {
                         Começar a Doar
                     </Link>
                 </div>
+            )}
+
+            {activeChat && (
+                <ChatWindow
+                    requestId={activeChat.requestId}
+                    itemName={activeChat.itemName}
+                    otherUserName={activeChat.otherUserName}
+                    onClose={() => setActiveChat(null)}
+                />
             )}
         </div>
     );

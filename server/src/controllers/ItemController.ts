@@ -15,6 +15,10 @@ export const getItems = async (req: Request, res: Response): Promise<void> => {
             where.category = category as string;
         }
 
+        if (req.query.condition) {
+            where.condition = req.query.condition as string;
+        }
+
         if (donorId) {
             where.donorId = String(donorId);
             delete where.status;

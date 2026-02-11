@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Search, Filter, X, Package } from 'lucide-react';
 import api from '../services/api';
 import ItemCard from '../components/ItemCard';
+import ScrollReveal from '../components/ScrollReveal';
 
 interface Item {
     id: string;
@@ -52,35 +53,35 @@ const Catalog = () => {
     return (
         <div className="min-h-screen bg-gray-50 font-sans">
             {/* Hero Search Section */}
-            <div className="bg-primary pt-32 pb-20 px-4 relative overflow-hidden">
+            <div className="bg-primary pt-24 md:pt-32 pb-16 md:pb-20 px-4 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-green-600 to-green-900 opacity-90 z-0 animate-gradient"></div>
                 <div className="absolute -top-24 -left-24 w-96 h-96 bg-white opacity-10 rounded-full blur-3xl"></div>
                 <div className="absolute bottom-0 right-0 w-80 h-80 bg-yellow-400 opacity-20 rounded-full blur-3xl"></div>
 
                 <div className="container mx-auto relative z-10 max-w-4xl text-center">
-                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight animate-fade-in-down">
+                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6 tracking-tight animate-fade-in-down">
                         Encontre o móvel ideal para seu lar
                     </h1>
-                    <p className="text-green-100 text-lg mb-10 animate-fade-in-up delay-100">
+                    <p className="text-green-100 text-base md:text-lg mb-8 md:mb-10 animate-fade-in-up delay-100">
                         Explore centenas de doações disponíveis em sua região.
                     </p>
 
                     <div className="bg-white p-2 rounded-2xl shadow-xl flex flex-col md:flex-row gap-2 animate-scale-in delay-200">
                         <form onSubmit={handleSearch} className="flex-1 relative">
-                            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={22} />
+                            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                             <input
                                 type="text"
                                 placeholder="O que você está procurando? (ex: sofá, mesa...)"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-12 pr-4 py-4 rounded-xl border-none focus:ring-0 outline-none text-gray-700 placeholder-gray-400 text-lg"
+                                className="w-full pl-10 md:pl-12 pr-4 py-3 md:py-4 rounded-xl border-none focus:ring-0 outline-none text-gray-700 placeholder-gray-400 text-base md:text-lg"
                             />
                         </form>
                         <button
                             onClick={() => setShowFilters(!showFilters)}
                             className={`px-6 py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${showFilters || selectedCategory
-                                    ? 'bg-green-100 text-primary'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                ? 'bg-green-100 text-primary'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                 }`}
                         >
                             <Filter size={20} />
@@ -108,8 +109,8 @@ const Catalog = () => {
                                         key={cat}
                                         onClick={() => setSelectedCategory(selectedCategory === cat ? '' : cat)}
                                         className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all ${selectedCategory === cat
-                                                ? 'bg-white text-primary shadow-lg transform scale-105'
-                                                : 'bg-black/20 text-white hover:bg-black/30 border border-white/10'
+                                            ? 'bg-white text-primary shadow-lg transform scale-105'
+                                            : 'bg-black/20 text-white hover:bg-black/30 border border-white/10'
                                             }`}
                                     >
                                         {cat}
@@ -137,11 +138,11 @@ const Catalog = () => {
                         ))}
                     </div>
                 ) : items.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
                         {items.map((item, index) => (
-                            <div key={item.id} className={`animate-fade-in-up stagger-${(index % 5) + 1}`}>
+                            <ScrollReveal key={item.id} animation="fade-up" delay={(index % 4) * 100}>
                                 <ItemCard item={item} />
-                            </div>
+                            </ScrollReveal>
                         ))}
                     </div>
                 ) : (

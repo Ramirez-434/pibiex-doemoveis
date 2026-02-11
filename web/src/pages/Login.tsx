@@ -100,9 +100,9 @@ const Login = () => {
                             </div>
 
                             <div className="flex items-center justify-end">
-                                <a href="#" className="text-sm font-medium text-primary hover:text-green-700 transition-colors">
+                                <Link to="/recuperar-senha" className="text-sm font-medium text-primary hover:text-green-700 transition-colors">
                                     Esqueceu a senha?
-                                </a>
+                                </Link>
                             </div>
 
                             <button

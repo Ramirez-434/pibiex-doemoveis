@@ -106,7 +106,7 @@ const ItemDetail = () => {
                     <div className="flex flex-col lg:flex-row">
                         {/* Image Gallery */}
                         <div className="lg:w-3/5 bg-gray-100 p-2">
-                            <div className="relative h-[500px] rounded-2xl overflow-hidden bg-white shadow-inner">
+                            <div className="relative h-72 sm:h-96 lg:h-[500px] rounded-2xl overflow-hidden bg-white shadow-inner">
                                 {item.images[activeImage] ? (
                                     <img
                                         src={item.images[activeImage]}
@@ -131,7 +131,7 @@ const ItemDetail = () => {
                                         <button
                                             key={index}
                                             onClick={() => setActiveImage(index)}
-                                            className={`relative w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all ${activeImage === index ? 'border-primary shadow-md scale-105' : 'border-transparent opacity-70 hover:opacity-100'
+                                            className={`relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all ${activeImage === index ? 'border-primary shadow-md scale-105' : 'border-transparent opacity-70 hover:opacity-100'
                                                 }`}
                                         >
                                             <img src={img} alt="" className="w-full h-full object-cover" />
@@ -142,12 +142,12 @@ const ItemDetail = () => {
                         </div>
 
                         {/* Product Info */}
-                        <div className="lg:w-2/5 p-8 lg:p-12 flex flex-col">
+                        <div className="lg:w-2/5 p-6 lg:p-12 flex flex-col">
                             <div className="mb-6">
                                 <div className="flex items-center gap-3 mb-4">
                                     <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${item.condition === 'NOVO' ? 'bg-green-100 text-green-700' :
-                                            item.condition === 'BOM' ? 'bg-blue-100 text-blue-700' :
-                                                'bg-orange-100 text-orange-700'
+                                        item.condition === 'BOM' ? 'bg-blue-100 text-blue-700' :
+                                            'bg-orange-100 text-orange-700'
                                         }`}>
                                         {item.condition}
                                     </span>
@@ -156,7 +156,7 @@ const ItemDetail = () => {
                                     </span>
                                 </div>
 
-                                <h1 className="text-4xl font-bold text-gray-800 mb-4 leading-tight">{item.title}</h1>
+                                <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4 leading-tight">{item.title}</h1>
 
                                 <div className="flex items-center text-gray-600 mb-6 bg-gray-50 p-3 rounded-xl inline-flex">
                                     <MapPin size={20} className="mr-2 text-primary" />
