@@ -1,25 +1,33 @@
-import { Request, Response } from 'express';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { prisma } from '../server';
-import { sendEmail } from '../services/emailService';
-import { AuthRequest } from '../middleware/authMiddleware';
-
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.updateProfile = exports.resetPassword = exports.forgotPassword = exports.login = exports.register = void 0;
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const server_1 = require("../server");
+const emailService_1 = require("../services/emailService");
 const SECRET_KEY = process.env.JWT_SECRET || 'supersecretkey';
-
-export const register = async (req: Request, res: Response): Promise<void> => {
+const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { name, email, password, phone, city, state } = req.body;
-
-        const existingUser = await prisma.user.findUnique({ where: { email } });
+        const existingUser = yield server_1.prisma.user.findUnique({ where: { email } });
         if (existingUser) {
             res.status(400).json({ error: 'User already exists' });
             return;
         }
-
-        const password_hash = await bcrypt.hash(password, 10);
-
-        const user = await prisma.user.create({
+        const password_hash = yield bcryptjs_1.default.hash(password, 10);
+        const user = yield server_1.prisma.user.create({
             data: {
                 name,
                 email,
@@ -29,67 +37,59 @@ export const register = async (req: Request, res: Response): Promise<void> => {
                 state,
             },
         });
-
         res.status(201).json({ message: 'User created successfully', userId: user.id });
-    } catch (error) {
+    }
+    catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal server error' });
     }
-};
-
-export const login = async (req: Request, res: Response): Promise<void> => {
+});
+exports.register = register;
+const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { email, password } = req.body;
-
-        const user = await prisma.user.findUnique({ where: { email } });
+        const user = yield server_1.prisma.user.findUnique({ where: { email } });
         if (!user) {
             res.status(401).json({ error: 'Invalid credentials' });
             return;
         }
-
-        const isValid = await bcrypt.compare(password, user.password_hash);
+        const isValid = yield bcryptjs_1.default.compare(password, user.password_hash);
         if (!isValid) {
             res.status(401).json({ error: 'Invalid credentials' });
             return;
         }
-
-        const token = jwt.sign({ userId: user.id, email: user.email }, SECRET_KEY, {
+        const token = jsonwebtoken_1.default.sign({ userId: user.id, email: user.email }, SECRET_KEY, {
             expiresIn: '7d',
         });
-
         res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
-    } catch (error) {
+    }
+    catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal server error' });
     }
-};
-
-export const forgotPassword = async (req: Request, res: Response): Promise<void> => {
+});
+exports.login = login;
+const forgotPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { email } = req.body;
-
-        const user = await prisma.user.findUnique({ where: { email } });
+        const user = yield server_1.prisma.user.findUnique({ where: { email } });
         if (!user) {
             // Do not reveal if user exists
             res.status(200).json({ message: 'Se o email existir, um link de recuperação será enviado.' });
             return;
         }
-
         // Generate token (random string)
         const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
         const expiresAt = new Date(Date.now() + 3600000); // 1 hour
-
-        await prisma.passwordResetToken.create({
+        yield server_1.prisma.passwordResetToken.create({
             data: {
                 token,
                 userId: user.id,
                 expiresAt,
             },
         });
-
         // Send Email
         const resetLink = `http://localhost:5173/redefinir-senha?token=${token}`;
-
         const html = `
             <div style="font-family: sans-serif; padding: 20px;">
                 <h2>Recuperação de Senha</h2>
@@ -100,63 +100,56 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
                 <p>Este link expira em 1 hora.</p>
             </div>
         `;
-
-        await sendEmail(email, 'DoeBrasil - Recuperação de Senha', html);
-
+        yield (0, emailService_1.sendEmail)(email, 'DoeBrasil - Recuperação de Senha', html);
         res.status(200).json({ message: 'Se o email existir, um link de recuperação será enviado.' });
-    } catch (error) {
+    }
+    catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Erro ao enviar email. Tente novamente mais tarde.' });
     }
-};
-
-export const resetPassword = async (req: Request, res: Response): Promise<void> => {
+});
+exports.forgotPassword = forgotPassword;
+const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { token, newPassword } = req.body; // Body is usually any, but let's leave it.
-
-        const resetToken = await prisma.passwordResetToken.findUnique({
+        const resetToken = yield server_1.prisma.passwordResetToken.findUnique({
             where: { token },
             include: { user: true },
         });
-
         if (!resetToken || resetToken.expiresAt < new Date()) {
             res.status(400).json({ error: 'Token inválido ou expirado.' });
             return;
         }
-
-        const password_hash = await bcrypt.hash(newPassword, 10);
-
-        await prisma.user.update({
+        const password_hash = yield bcryptjs_1.default.hash(newPassword, 10);
+        yield server_1.prisma.user.update({
             where: { id: resetToken.userId },
             data: { password_hash },
         });
-
         // Delete used token
-        await prisma.passwordResetToken.delete({
+        yield server_1.prisma.passwordResetToken.delete({
             where: { id: resetToken.id },
         });
-
         res.status(200).json({ message: 'Senha redefinida com sucesso!' });
-    } catch (error) {
+    }
+    catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal server error' });
     }
-};
-
-export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
+});
+exports.resetPassword = resetPassword;
+const updateProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         console.log('DEBUG: updateProfile called');
         console.log('DEBUG: Body:', req.body);
-        const userId = req.user?.userId;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId;
         console.log('DEBUG: UserId:', userId);
         const { avatar, name, phone, city, state } = req.body;
-
         if (!userId) {
             res.status(401).json({ error: 'Unauthorized' });
             return;
         }
-
-        const updatedUser = await prisma.user.update({
+        const updatedUser = yield server_1.prisma.user.update({
             where: { id: userId },
             data: {
                 avatar,
@@ -166,7 +159,6 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
                 state
             }
         });
-
         res.json({
             message: 'Perfil atualizado!',
             user: {
@@ -178,8 +170,10 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
                 state: updatedUser.state
             }
         });
-    } catch (error) {
+    }
+    catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Erro ao atualizar perfil' });
     }
-};
+});
+exports.updateProfile = updateProfile;

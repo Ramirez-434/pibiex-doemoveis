@@ -31,7 +31,7 @@ const MotivationSection = () => {
             <div className="container mx-auto px-4">
                 <ScrollReveal>
                     <div className="text-center mb-16">
-                        <span className="text-sm font-bold text-primary tracking-wider uppercase mb-2 block">Por que usar o DoeMóveis?</span>
+                        <span className="text-sm font-bold text-primary tracking-wider uppercase mb-2 block">Por que usar o DoeBrasil?</span>
                         <h2 className="text-3xl md:text-4xl font-bold text-gray-800">
                             Pequenos gestos, <span className="text-gradient">grande impacto</span>
                         </h2>

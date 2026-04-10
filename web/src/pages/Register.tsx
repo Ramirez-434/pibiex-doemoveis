@@ -45,7 +45,7 @@ const Register = () => {
                     <div className="absolute top-0 left-0 w-96 h-96 bg-yellow-300 opacity-20 rounded-full blur-3xl"></div>
 
                     <div className="relative z-10 text-right animate-fade-in-down">
-                        <h1 className="text-3xl font-bold mb-2 tracking-tight">DoeMóveis</h1>
+                        <h1 className="text-3xl font-bold mb-2 tracking-tight">DoeBrasil</h1>
                         <p className="text-orange-100 font-medium">Junte-se à nossa comunidade.</p>
                     </div>
 
@@ -57,7 +57,7 @@ const Register = () => {
                     </div>
 
                     <div className="relative z-10 text-sm text-orange-200/80 font-medium text-right">
-                        © 2024 PIBIEX DoeMóveis.
+                        © 2024 DoeBrasil.
                     </div>
                 </div>
 

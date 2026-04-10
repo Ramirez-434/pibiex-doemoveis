@@ -1,5 +1,6 @@
 
-import { useEffect, useRef, useState, ReactNode } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 
 interface ScrollRevealProps {
     children: ReactNode;
@@ -43,23 +44,6 @@ const ScrollReveal = ({
             }
         };
     }, [threshold]);
-
-    const getAnimationClass = () => {
-        // We reuse existing keyframes from index.css or define inline styles if needed
-        // Assuming we rely on the `isVisible` state to toggle classes
-        if (!isVisible) return 'opacity-0 translate-y-10'; // Initial state (hidden)
-
-        switch (animation) {
-            case 'fade-up':
-                return 'opacity-100 translate-y-0';
-            case 'fade-in':
-                return 'opacity-100';
-            case 'scale-up':
-                return 'opacity-100 scale-100';
-            default:
-                return 'opacity-100 translate-y-0';
-        }
-    };
 
     const initialStyle = !isVisible ? {
         opacity: 0,

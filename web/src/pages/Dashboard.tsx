@@ -35,7 +35,7 @@ const Dashboard = () => {
             const avatarUrl = uploadRes.data.url;
 
             // 2. Update profile
-            const updateRes = await api.patch('/auth/profile', { avatar: avatarUrl });
+            await api.patch('/auth/profile', { avatar: avatarUrl });
 
             // 3. Update local state and storage
             const updatedUser = { ...user, avatar: avatarUrl };

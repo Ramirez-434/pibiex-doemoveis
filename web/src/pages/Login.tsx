@@ -38,7 +38,7 @@ const Login = () => {
                     <div className="absolute bottom-0 right-0 w-96 h-96 bg-yellow-400 opacity-20 rounded-full blur-3xl"></div>
 
                     <div className="relative z-10 animate-fade-in-down">
-                        <h1 className="text-3xl font-bold mb-2 tracking-tight">DoeMóveis</h1>
+                        <h1 className="text-3xl font-bold mb-2 tracking-tight">DoeBrasil</h1>
                         <p className="text-green-100 font-medium">Conectando corações e lares.</p>
                     </div>
 
@@ -50,7 +50,7 @@ const Login = () => {
                     </div>
 
                     <div className="relative z-10 text-sm text-green-200/80 font-medium">
-                        © 2024 PIBIEX DoeMóveis. Todos os direitos reservados.
+                        © 2024 DoeBrasil. Todos os direitos reservados.
                     </div>
                 </div>
 

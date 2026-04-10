@@ -33,7 +33,7 @@ const Navbar = () => {
                         </div>
                         <span className={`text-2xl font-bold tracking-tight transition-colors ${scrolled || location.pathname !== '/' ? 'text-gray-800' : 'text-white'
                             }`}>
-                            DoeMóveis
+                            DoeBrasil
                         </span>
                     </Link>
 
