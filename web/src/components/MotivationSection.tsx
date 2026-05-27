@@ -6,7 +6,7 @@ const MotivationSection = () => {
         {
             icon: Leaf,
             title: "Sustentabilidade",
-            description: "Dê uma segunda vida aos seus móveis e ajude a reduzir o desperdício no planeta.",
+            description: "Dê uma segunda vida aos seus itens e ajude a reduzir o desperdício no planeta.",
             color: "text-green-600",
             bg: "bg-green-100"
         },

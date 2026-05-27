@@ -152,7 +152,7 @@ const Catalog = () => {
                         </div>
                         <h3 className="text-2xl font-bold text-gray-800 mb-3">Nenhum item encontrado</h3>
                         <p className="text-gray-500 max-w-md mx-auto">
-                            Não encontramos móveis com os filtros selecionados. Tente buscar por outros termos ou limpe os filtros.
+                            Não encontramos itens com os filtros selecionados. Tente buscar por outros termos ou limpe os filtros.
                         </p>
                         {selectedCategory && (
                             <button

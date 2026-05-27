@@ -52,7 +52,7 @@ const Register = () => {
                     <div className="relative z-10 mb-12 text-right animate-fade-in-up delay-100">
                         <h2 className="text-4xl font-bold mb-6 leading-tight">Crie sua<br />conta hoje</h2>
                         <p className="text-lg text-orange-50 leading-relaxed">
-                            Comece a transformar vidas doando móveis ou encontre o que você precisa para o seu lar.
+                            Comece a transformar vidas doando itens ou encontre o que você precisa para o seu lar.
                         </p>
                     </div>
 

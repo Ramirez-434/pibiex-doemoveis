@@ -18,7 +18,7 @@ const HeroSection = () => {
 
                 <ScrollReveal>
                     <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold text-gray-900 mb-6 tracking-tight leading-tight">
-                        Doe móveis, <br />
+                        Doe o que não usa, <br />
                         <span className="block text-gradient pb-2">
                             transforme vidas.
                         </span>
@@ -27,7 +27,7 @@ const HeroSection = () => {
 
                 <ScrollReveal delay={200}>
                     <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-                        Sua doação pode ser o recomeço de alguém. A plataforma que une quem quer ajudar a quem precisa mobiliar um lar com dignidade.
+                        Sua doação pode ser o recomeço de alguém. A plataforma que une quem quer ajudar a quem precisa de itens para o lar com dignidade.
                     </p>
                 </ScrollReveal>
 
@@ -44,7 +44,7 @@ const HeroSection = () => {
                         className="px-8 py-4 bg-white text-gray-700 border border-gray-200 rounded-full font-bold text-lg hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm hover:shadow-md flex items-center gap-2"
                     >
                         <Search size={20} />
-                        Buscar Móveis
+                        Buscar Itens
                     </button>
                 </div>
 
