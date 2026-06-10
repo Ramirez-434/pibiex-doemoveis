@@ -10,14 +10,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const client_1 = require("@prisma/client");
+const server_1 = require("../server");
 const authMiddleware_1 = require("../middleware/authMiddleware");
 const router = (0, express_1.Router)();
-const prisma = new client_1.PrismaClient();
 // Get all users
 router.get('/users', authMiddleware_1.authenticateToken, authMiddleware_1.authorizeAdmin, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const users = yield prisma.user.findMany({
+        const users = yield server_1.prisma.user.findMany({
             select: {
                 id: true,
                 name: true,
@@ -33,14 +32,54 @@ router.get('/users', authMiddleware_1.authenticateToken, authMiddleware_1.author
         res.status(500).json({ error: 'Failed to fetch users' });
     }
 }));
+// Get KPI Stats
+router.get('/stats', authMiddleware_1.authenticateToken, authMiddleware_1.authorizeAdmin, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const totalUsers = yield server_1.prisma.user.count({ where: { isActive: true } });
+        const totalItems = yield server_1.prisma.item.count();
+        // Famílias Ajudadas = Total de Solicitações Aprovadas
+        const familiesHelped = yield server_1.prisma.donationRequest.count({
+            where: { status: 'APPROVED' }
+        });
+        // Taxa de Sucesso = (Aprovadas / Total) * 100
+        const totalRequests = yield server_1.prisma.donationRequest.count();
+        const successRate = totalRequests > 0
+            ? Math.round((familiesHelped / totalRequests) * 100)
+            : 0;
+        res.json({
+            totalUsers,
+            totalItems,
+            familiesHelped,
+            successRate
+        });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to fetch stats' });
+    }
+}));
 // Delete user
 router.delete('/users/:id', authMiddleware_1.authenticateToken, authMiddleware_1.authorizeAdmin, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     try {
-        // Find user items to maybe handle them, but Prisma cascade could do it
-        // Or we can manually delete them or reassign. Let's assume cascade or manual deletion
-        yield prisma.item.deleteMany({ where: { donorId: id } });
-        yield prisma.user.delete({ where: { id } });
+        const user = yield server_1.prisma.user.findUnique({ where: { id } });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        // Soft Delete cascade para itens do doador
+        yield server_1.prisma.item.updateMany({
+            where: { donorId: id },
+            data: { deletedAt: new Date() }
+        });
+        // Soft Delete do usuário e ofuscamento do email
+        yield server_1.prisma.user.update({
+            where: { id },
+            data: {
+                isActive: false,
+                deletedAt: new Date(),
+                email: `inativo_${Date.now()}_${user.email}`
+            }
+        });
         res.json({ message: 'User and their items deleted successfully' });
     }
     catch (error) {
@@ -52,7 +91,10 @@ router.delete('/users/:id', authMiddleware_1.authenticateToken, authMiddleware_1
 router.delete('/items/:id', authMiddleware_1.authenticateToken, authMiddleware_1.authorizeAdmin, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     try {
-        yield prisma.item.delete({ where: { id } });
+        yield server_1.prisma.item.update({
+            where: { id },
+            data: { deletedAt: new Date() }
+        });
         res.json({ message: 'Item deleted successfully' });
     }
     catch (error) {

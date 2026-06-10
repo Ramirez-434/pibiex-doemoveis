@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteItem = exports.createItem = exports.getItemById = exports.getItems = void 0;
+exports.getPublicStats = exports.deleteItem = exports.createItem = exports.getItemById = exports.getItems = void 0;
 const server_1 = require("../server");
 const types_1 = require("../types");
 const getItems = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -127,3 +127,23 @@ const deleteItem = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.deleteItem = deleteItem;
+const getPublicStats = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const itemsDonated = yield server_1.prisma.item.count({ where: { status: 'DONATED' } });
+        const familiesHelped = yield server_1.prisma.donationRequest.count({ where: { status: 'APPROVED' } });
+        const users = yield server_1.prisma.user.findMany({ select: { city: true } });
+        const uniqueCities = new Set(users.map(u => { var _a; return (_a = u.city) === null || _a === void 0 ? void 0 : _a.toLowerCase().trim(); }).filter(Boolean));
+        const volunteers = yield server_1.prisma.user.count({ where: { isActive: true } });
+        res.json({
+            itemsDonated,
+            familiesHelped,
+            cities: uniqueCities.size,
+            volunteers
+        });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+exports.getPublicStats = getPublicStats;

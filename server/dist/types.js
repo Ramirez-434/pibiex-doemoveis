@@ -21,6 +21,7 @@ var ItemStatus;
 (function (ItemStatus) {
     ItemStatus["AVAILABLE"] = "AVAILABLE";
     ItemStatus["PENDING"] = "PENDING";
+    ItemStatus["RESERVED"] = "RESERVED";
     ItemStatus["DONATED"] = "DONATED";
 })(ItemStatus || (exports.ItemStatus = ItemStatus = {}));
 var RequestStatus;

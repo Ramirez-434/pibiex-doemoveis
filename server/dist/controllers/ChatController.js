@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getConversations = exports.getMessages = exports.sendMessage = void 0;
 const server_1 = require("../server");
+const emailService_1 = require("../services/emailService");
 const sendMessage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
@@ -50,6 +51,13 @@ const sendMessage = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                 message: `Você recebeu uma mensagem sobre: ${request.item.title}`,
             },
         });
+        // Send email to recipient
+        const recipientUser = yield server_1.prisma.user.findUnique({ where: { id: recipientId } });
+        if (recipientUser && recipientUser.email) {
+            yield (0, emailService_1.sendEmail)(recipientUser.email, 'Nova Mensagem no Doe+Brasil', `<p>Olá ${recipientUser.name},</p><p>Você recebeu uma nova mensagem sobre a doação <b>${request.item.title}</b>.</p><p>Acesse o painel para responder!</p>`);
+        }
+        // Emit message to WebSocket room
+        server_1.io.to(requestId).emit('new_message', message);
         res.status(201).json(message);
     }
     catch (error) {

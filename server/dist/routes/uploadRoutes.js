@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+require("dotenv/config");
 const express_1 = require("express");
 const multer_1 = __importDefault(require("multer"));
 const cloudinary_1 = require("cloudinary");
@@ -18,9 +19,7 @@ cloudinary_1.v2.config({
 const storage = new multer_storage_cloudinary_1.CloudinaryStorage({
     cloudinary: cloudinary_1.v2,
     params: {
-        folder: 'doebrasil_uploads', // Folder name in your cloudinary
-        allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-        transformation: [{ width: 1000, height: 1000, crop: 'limit' }]
+        folder: 'doebrasil_uploads',
     },
 });
 const upload = (0, multer_1.default)({
