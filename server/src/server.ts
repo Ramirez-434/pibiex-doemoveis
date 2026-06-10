@@ -15,9 +15,7 @@ import http from 'http';
 import { Server } from 'socket.io';
 
 const app = express();
-const prismaClient = new PrismaClient({
-  datasourceUrl: "mysql://marqu668_marques:marques4312@localhost:3306/marqu668_doemaisbr"
-});
+const prismaClient = new PrismaClient();
 
 const prisma = prismaClient.$extends({
   query: {
