@@ -31,9 +31,9 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         });
 
         res.status(201).json({ message: 'User created successfully', userId: user.id });
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ error: error.message || 'Internal server error' });
     }
 };
 

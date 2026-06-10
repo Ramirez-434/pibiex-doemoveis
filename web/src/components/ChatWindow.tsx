@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Send, X } from 'lucide-react';
+import { io } from 'socket.io-client';
 import api from '../services/api';
 
 interface Message {
@@ -30,8 +31,21 @@ const ChatWindow = ({ requestId, itemName, otherUserName, onClose }: ChatWindowP
 
     useEffect(() => {
         fetchMessages();
-        const interval = setInterval(fetchMessages, 5000); // Polling every 5s
-        return () => clearInterval(interval);
+        
+        // Connect to Socket.io
+        const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:3000');
+        
+        socket.on('connect', () => {
+            socket.emit('join_chat', requestId);
+        });
+
+        socket.on('new_message', (message: Message) => {
+            setMessages(prev => [...prev, message]);
+        });
+
+        return () => {
+            socket.disconnect();
+        };
     }, [requestId]);
 
     useEffect(() => {
@@ -67,7 +81,7 @@ const ChatWindow = ({ requestId, itemName, otherUserName, onClose }: ChatWindowP
         try {
             await api.post('/chat', { requestId, content });
             setNewMessage('');
-            fetchMessages();
+            // A mensagem nova chegará pelo WebSocket, não precisamos fazer fetchMessages()
         } catch (error) {
             console.error('Error sending message:', error);
         }

@@ -13,6 +13,9 @@ import MyDonations from './pages/dashboard/MyDonations';
 import MyRequests from './pages/dashboard/MyRequests';
 import ChatList from './pages/dashboard/ChatList';
 import PrivateRoute from './components/PrivateRoute';
+import AdminDashboard from './pages/AdminDashboard';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
 
 const AppRoutes = () => {
     return (
@@ -26,6 +29,8 @@ const AppRoutes = () => {
                 <Route path="/cadastro" element={<Register />} />
                 <Route path="/recuperar-senha" element={<ForgotPassword />} />
                 <Route path="/redefinir-senha" element={<ResetPassword />} />
+                <Route path="/termos" element={<Terms />} />
+                <Route path="/privacidade" element={<Privacy />} />
 
                 <Route path="/painel" element={<PrivateRoute><Dashboard /></PrivateRoute>}>
                     <Route index element={<Navigate to="/painel/novo-item" replace />} />
@@ -34,6 +39,7 @@ const AppRoutes = () => {
                     <Route path="solicitacoes" element={<MyRequests />} />
                     <Route path="chat" element={<ChatList />} />
                 </Route>
+                <Route path="/admin" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />
             </Routes>
         </BrowserRouter>
     );

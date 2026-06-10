@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback } from 'react';
 import HeroSection from '../components/HeroSection';
 import MotivationSection from '../components/MotivationSection';
 import ItemCard from '../components/ItemCard';
+import { Footer } from '../components/Footer';
+import { SkeletonGrid } from '../components/Skeleton';
 import api from '../services/api';
 import { Search, Filter, X } from 'lucide-react';
 
@@ -17,12 +19,14 @@ interface Item {
 }
 
 const CATEGORIES = [
-    { value: 'SOFA', label: 'Sofá' },
-    { value: 'MESA', label: 'Mesa' },
-    { value: 'CADEIRA', label: 'Cadeira' },
-    { value: 'CAMA', label: 'Cama' },
-    { value: 'ARMARIO', label: 'Armário' },
-    { value: 'ESTANTE', label: 'Estante' },
+    { value: 'ELETRONICOS', label: 'Eletrônicos' },
+    { value: 'ROUPAS', label: 'Roupas' },
+    { value: 'MOVEIS', label: 'Móveis' },
+    { value: 'LIVROS', label: 'Livros' },
+    { value: 'UTENSÍLIOS', label: 'Utensílios' },
+    { value: 'BRINQUEDOS', label: 'Brinquedos' },
+    { value: 'ESPORTES', label: 'Esportes' },
+    { value: 'SAUDE', label: 'Saúde/Beleza' },
     { value: 'OUTROS', label: 'Outros' }
 ];
 
@@ -89,7 +93,7 @@ const Homepage = () => {
                 <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
                     <div>
                         <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                            Encontre seu Móvel
+                            Encontre os itens que procura
                         </h2>
                         <p className="text-gray-500">
                             Navegue pelos itens disponíveis para doação
@@ -162,12 +166,9 @@ const Homepage = () => {
                 </div>
 
                 {loading ? (
-                    <div className="text-center py-20">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                        <p className="text-gray-500">Carregando itens...</p>
-                    </div>
+                    <SkeletonGrid count={15} />
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 lg:gap-6">
                         {featuredItems.map((item) => (
                             <ItemCard key={item.id} item={item} />
                         ))}
@@ -194,6 +195,7 @@ const Homepage = () => {
                     </div>
                 )}
             </section>
+            <Footer />
         </div>
     );
 };

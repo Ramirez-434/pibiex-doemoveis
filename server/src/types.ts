@@ -17,6 +17,7 @@ export enum Condition {
 export enum ItemStatus {
     AVAILABLE = 'AVAILABLE',
     PENDING = 'PENDING',
+    RESERVED = 'RESERVED',
     DONATED = 'DONATED'
 }
 

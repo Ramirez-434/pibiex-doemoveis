@@ -1,0 +1,40 @@
+name: Deploy Frontend (React) to HostGator
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'web/**' # Roda a automação apenas se os arquivos do frontend forem alterados
+
+jobs:
+  web-deploy:
+    name: Build and Deploy Frontend
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Baixar o código mais recente do GitHub
+      uses: actions/checkout@v4
+      
+    - name: Configurar o Node.js no servidor do GitHub
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20' # Mesma versão recomendada
+        
+    - name: Instalar dependências (npm install)
+      working-directory: ./web
+      run: npm install
+        
+    - name: Compilar o código para Produção (npm run build)
+      working-directory: ./web
+      run: npm run build
+      
+    - name: Fazer Upload via FTP para a HostGator
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./web/dist/ # Envia apenas o que foi compilado
+        server-dir: /public_html/ # A pasta onde o site principal roda na HostGator

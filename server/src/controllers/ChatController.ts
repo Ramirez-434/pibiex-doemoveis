@@ -1,7 +1,8 @@
 
 import { Response } from 'express';
-import { prisma } from '../server';
+import { prisma, io } from '../server';
 import { AuthRequest } from '../middleware/authMiddleware';
+import { sendEmail } from '../services/emailService';
 
 export const sendMessage = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
@@ -48,6 +49,19 @@ export const sendMessage = async (req: AuthRequest, res: Response): Promise<void
                 message: `Você recebeu uma mensagem sobre: ${request.item.title}`,
             },
         });
+
+        // Send email to recipient
+        const recipientUser = await prisma.user.findUnique({ where: { id: recipientId } });
+        if (recipientUser && recipientUser.email) {
+            await sendEmail(
+                recipientUser.email,
+                'Nova Mensagem no Doe+Brasil',
+                `<p>Olá ${recipientUser.name},</p><p>Você recebeu uma nova mensagem sobre a doação <b>${request.item.title}</b>.</p><p>Acesse o painel para responder!</p>`
+            );
+        }
+
+        // Emit message to WebSocket room
+        io.to(requestId).emit('new_message', message);
 
         res.status(201).json(message);
     } catch (error) {

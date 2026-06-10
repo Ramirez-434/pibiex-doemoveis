@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 const SECRET_KEY = process.env.JWT_SECRET || 'supersecretkey';
 
 export interface AuthRequest extends Request {
-    user?: { userId: string; email: string };
+    user?: { userId: string; email: string; role: string };
 }
 
 export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction): void => {
@@ -21,7 +21,15 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
             res.status(403).json({ error: 'Invalid token' });
             return;
         }
-        req.user = user as { userId: string; email: string };
+        req.user = user as { userId: string; email: string; role: string };
         next();
     });
+};
+
+export const authorizeAdmin = (req: AuthRequest, res: Response, next: NextFunction): void => {
+    if (req.user?.role !== 'ADMIN') {
+        res.status(403).json({ error: 'Access denied. Admins only.' });
+        return;
+    }
+    next();
 };

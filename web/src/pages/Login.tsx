@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { User, Lock, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
 import api from '../services/api';
 
 const Login = () => {
@@ -9,6 +9,7 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -38,7 +39,7 @@ const Login = () => {
                     <div className="absolute bottom-0 right-0 w-96 h-96 bg-yellow-400 opacity-20 rounded-full blur-3xl"></div>
 
                     <div className="relative z-10 animate-fade-in-down">
-                        <h1 className="text-3xl font-bold mb-2 tracking-tight">DoeBrasil</h1>
+                        <h1 className="text-3xl font-bold mb-2 tracking-tight">Doe + Brasil</h1>
                         <p className="text-green-100 font-medium">Conectando corações e lares.</p>
                     </div>
 
@@ -50,7 +51,7 @@ const Login = () => {
                     </div>
 
                     <div className="relative z-10 text-sm text-green-200/80 font-medium">
-                        © 2024 DoeBrasil. Todos os direitos reservados.
+                        © 2024 Doe + Brasil. Todos os direitos reservados.
                     </div>
                 </div>
 
@@ -89,13 +90,20 @@ const Login = () => {
                                 <div className="relative transition-all duration-300 focus-within:transform focus-within:-translate-y-1">
                                     <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors" size={20} />
                                     <input
-                                        type="password"
+                                        type={showPassword ? "text" : "password"}
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-100 focus:border-primary outline-none transition-all font-medium text-gray-700 placeholder-gray-400"
+                                        className="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-100 focus:border-primary outline-none transition-all font-medium text-gray-700 placeholder-gray-400"
                                         placeholder="••••••••"
                                         required
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-primary transition-colors"
+                                    >
+                                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                    </button>
                                 </div>
                             </div>
 

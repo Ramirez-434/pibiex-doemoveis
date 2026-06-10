@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { prisma } from '../server';
 import { AuthRequest } from '../middleware/authMiddleware';
 import { RequestStatus, ItemStatus } from '../types';
+import { sendEmail } from '../services/emailService';
 
 export const createRequest = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
@@ -29,6 +30,24 @@ export const createRequest = async (req: AuthRequest, res: Response): Promise<vo
             return;
         }
 
+        // Controle de Concorrência Otimista (Race Condition)
+        const updatedItem = await prisma.item.updateMany({
+            where: { 
+                id: itemId, 
+                status: ItemStatus.AVAILABLE,
+                // Assumindo que o item.version está disponível (precisamos buscar na query acima)
+            },
+            data: { 
+                status: ItemStatus.RESERVED,
+                version: { increment: 1 }
+            },
+        });
+
+        if (updatedItem.count === 0) {
+            res.status(409).json({ error: 'Infelizmente, outra pessoa acabou de reservar este item.' });
+            return;
+        }
+
         const request = await prisma.donationRequest.create({
             data: {
                 itemId,
@@ -36,10 +55,18 @@ export const createRequest = async (req: AuthRequest, res: Response): Promise<vo
             },
         });
 
-        await prisma.item.update({
+        // Tentar enviar e-mail para o doador, se ele tiver email cadastrado
+        const itemWithDonor = await prisma.item.findUnique({
             where: { id: itemId },
-            data: { status: ItemStatus.PENDING },
+            include: { donor: true }
         });
+        if (itemWithDonor && itemWithDonor.donor.email) {
+            await sendEmail(
+                itemWithDonor.donor.email,
+                'Nova Solicitação de Doação',
+                `<p>Olá ${itemWithDonor.donor.name},</p><p>Alguém acabou de solicitar o seu móvel: <b>${itemWithDonor.title}</b>!</p><p>Acesse o painel para combinar a retirada.</p>`
+            );
+        }
 
         res.status(201).json(request);
     } catch (error) {
@@ -135,6 +162,16 @@ export const approveRequest = async (req: AuthRequest, res: Response): Promise<v
             where: { id: request.itemId },
             data: { status: ItemStatus.DONATED },
         });
+
+        // Buscar email do beneficiário aprovado para notificar
+        const beneficiaryUser = await prisma.user.findUnique({ where: { id: request.beneficiaryId } });
+        if (beneficiaryUser && beneficiaryUser.email) {
+            await sendEmail(
+                beneficiaryUser.email,
+                'Doação Aprovada!',
+                `<p>Olá ${beneficiaryUser.name},</p><p>Sua solicitação para o móvel <b>${request.item.title}</b> foi aprovada!</p><p>Acesse o painel para entrar no chat com o doador e combinar a retirada.</p>`
+            );
+        }
 
         res.json({ message: 'Request approved' });
     } catch (error) {

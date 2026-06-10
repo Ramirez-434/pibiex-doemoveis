@@ -133,3 +133,25 @@ export const deleteItem = async (req: AuthRequest, res: Response): Promise<void>
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+export const getPublicStats = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const itemsDonated = await prisma.item.count({ where: { status: 'DONATED' } });
+        const familiesHelped = await prisma.donationRequest.count({ where: { status: 'APPROVED' } });
+        
+        const users = await prisma.user.findMany({ select: { city: true } });
+        const uniqueCities = new Set(users.map(u => u.city?.toLowerCase().trim()).filter(Boolean));
+        
+        const volunteers = await prisma.user.count({ where: { isActive: true } });
+
+        res.json({
+            itemsDonated,
+            familiesHelped,
+            cities: uniqueCities.size,
+            volunteers
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};

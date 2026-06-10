@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.authenticateToken = void 0;
+exports.authorizeAdmin = exports.authenticateToken = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const SECRET_KEY = process.env.JWT_SECRET || 'supersecretkey';
 const authenticateToken = (req, res, next) => {
@@ -23,3 +23,12 @@ const authenticateToken = (req, res, next) => {
     });
 };
 exports.authenticateToken = authenticateToken;
+const authorizeAdmin = (req, res, next) => {
+    var _a;
+    if (((_a = req.user) === null || _a === void 0 ? void 0 : _a.role) !== 'ADMIN') {
+        res.status(403).json({ error: 'Access denied. Admins only.' });
+        return;
+    }
+    next();
+};
+exports.authorizeAdmin = authorizeAdmin;

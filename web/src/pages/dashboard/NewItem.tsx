@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { X, ArrowRight, Upload, Loader2 } from 'lucide-react';
 import api from '../../services/api';
 
-const categories = ['SOFA', 'MESA', 'CADEIRA', 'CAMA', 'ARMARIO', 'ESTANTE', 'OUTROS'];
+const categories = ['ELETRONICOS', 'ROUPAS', 'MOVEIS', 'LIVROS', 'UTENSÍLIOS', 'BRINQUEDOS', 'ESPORTES', 'SAUDE', 'OUTROS'];
 const conditions = ['NOVO', 'BOM', 'REPARO'];
 
 const NewItem = () => {
@@ -75,40 +75,40 @@ const NewItem = () => {
     };
 
     return (
-        <div className="max-w-3xl mx-auto animate-fade-in-up">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">Doar Novo Item</h1>
-                <p className="text-gray-500">Preencha as informações do móvel que deseja doar.</p>
+        <div className="w-full px-3 sm:px-4 md:px-0 animate-fade-in-up">
+            <div className="mb-6 sm:mb-8">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">Doar Novo Item</h1>
+                <p className="text-sm sm:text-base text-gray-500">Preencha as informações do item que deseja doar.</p>
             </div>
 
             {error && (
-                <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 border border-red-100 flex items-center gap-2 animate-shake">
-                    <X size={20} /> {error}
+                <div className="bg-red-50 text-red-600 p-3 sm:p-4 rounded-xl mb-4 sm:mb-6 border border-red-100 flex items-start gap-2 animate-shake text-sm sm:text-base">
+                    <X size={18} className="flex-shrink-0 mt-0.5" /> <span>{error}</span>
                 </div>
             )}
 
-            <form onSubmit={handleSubmit} className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 md:p-8 space-y-8">
+            <form onSubmit={handleSubmit} className="bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8">
                 <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Título do Anúncio</label>
+                    <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2">Título do Anúncio</label>
                     <input
                         type="text"
                         name="title"
                         value={formData.title}
                         onChange={handleChange}
-                        className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-medium"
-                        placeholder="Ex: Sofá de 3 lugares confortável"
+                        className="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-medium text-base min-h-[44px] sm:min-h-auto touch-manipulation"
+                        placeholder="Ex: Item em bom estado"
                         required
                     />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-2">Categoria</label>
+                        <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2">Categoria</label>
                         <select
                             name="category"
                             value={formData.category}
                             onChange={handleChange}
-                            className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all bg-white font-medium"
+                            className="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all bg-white font-medium text-base min-h-[44px] sm:min-h-auto touch-manipulation"
                             required
                         >
                             <option value="">Selecione...</option>
@@ -119,12 +119,12 @@ const NewItem = () => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-2">Condição</label>
+                        <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2">Condição</label>
                         <select
                             name="condition"
                             value={formData.condition}
                             onChange={handleChange}
-                            className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all bg-white font-medium"
+                            className="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all bg-white font-medium text-base min-h-[44px] sm:min-h-auto touch-manipulation"
                             required
                         >
                             <option value="">Selecione...</option>
@@ -136,29 +136,29 @@ const NewItem = () => {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Descrição Detalhada</label>
+                    <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2">Descrição Detalhada</label>
                     <textarea
                         name="description"
                         value={formData.description}
                         onChange={handleChange}
                         rows={4}
-                        className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none font-medium"
+                        className="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none font-medium text-base touch-manipulation"
                         placeholder="Descreva o estado do item, medidas aproximadas, etc."
                         required
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-3">Fotos do Item</label>
+                    <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-3">Fotos do Item</label>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4 mb-4">
                         {formData.images.map((img: string, index: number) => (
                             <div key={index} className="relative aspect-square rounded-xl overflow-hidden group border border-gray-200">
                                 <img src={img} alt={`Preview ${index}`} className="w-full h-full object-cover" />
                                 <button
                                     type="button"
                                     onClick={() => removeImage(index)}
-                                    className="absolute top-2 right-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-full text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+                                    className="absolute top-1 right-1 sm:top-2 sm:right-2 p-1 sm:p-1.5 bg-white/80 backdrop-blur-sm rounded-full text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
                                 >
                                     <X size={16} />
                                 </button>
@@ -182,10 +182,10 @@ const NewItem = () => {
                                     <Loader2 className="animate-spin text-primary" size={24} />
                                 ) : (
                                     <>
-                                        <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mb-2 group-hover:bg-white group-hover:text-primary transition-colors text-gray-400">
-                                            <Upload size={20} />
+                                        <div className="w-8 sm:w-10 h-8 sm:h-10 bg-gray-100 rounded-full flex items-center justify-center mb-2 group-hover:bg-white group-hover:text-primary transition-colors text-gray-400">
+                                            <Upload size={18} className="sm:w-5 sm:h-5" />
                                         </div>
-                                        <span className="text-xs font-bold text-gray-500 group-hover:text-primary">Adicionar Foto</span>
+                                        <span className="text-xs font-bold text-gray-500 group-hover:text-primary text-center px-1">Adicionar Foto</span>
                                     </>
                                 )}
                             </label>
@@ -196,20 +196,20 @@ const NewItem = () => {
                     </p>
                 </div>
 
-                <div className="pt-4">
+                <div className="pt-2 sm:pt-4">
                     <button
                         type="submit"
                         disabled={loading || uploading}
-                        className="w-full bg-primary text-white py-4 rounded-xl font-bold text-lg hover:bg-green-700 transition-all shadow-lg hover:shadow-green-200/50 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed transform active:scale-95"
+                        className="w-full bg-primary text-white py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg hover:bg-green-700 transition-all shadow-lg hover:shadow-green-200/50 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed transform active:scale-95 min-h-[48px] sm:min-h-auto touch-manipulation"
                     >
                         {loading ? (
                             <>
-                                <Loader2 size={24} className="animate-spin" />
-                                Publicando...
+                                <Loader2 size={18} className="sm:w-6 sm:h-6 animate-spin" />
+                                <span className="text-sm sm:text-base">Publicando...</span>
                             </>
                         ) : (
                             <>
-                                Publicar Doação <ArrowRight size={20} />
+                                Publicar Doação <ArrowRight size={18} className="sm:w-5 sm:h-5" />
                             </>
                         )}
                     </button>

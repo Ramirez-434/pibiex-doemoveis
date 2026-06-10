@@ -60,42 +60,42 @@ const Dashboard = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 pt-24 font-sans">
-            <div className="container mx-auto px-4 py-8">
-                <div className="flex flex-col lg:flex-row gap-8">
+        <div className="min-h-screen bg-gray-50 pt-16 sm:pt-20 md:pt-24 lg:pt-28 font-sans">
+            <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
+                <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
                     {/* Sidebar */}
                     <aside className="lg:w-72 flex-shrink-0 animate-fade-in-up">
-                        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 mb-6 sticky top-28">
-                            <div className="flex items-center gap-4 mb-8 pb-6 border-b border-gray-100">
-                                <div className="relative group cursor-pointer">
-                                    <div className="w-14 h-14 rounded-full overflow-hidden shadow-lg shadow-green-200 border-2 border-white">
+                        <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-4 sm:p-6 mb-6 sticky top-20 md:top-24 lg:top-28">
+                            <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8 pb-4 sm:pb-6 border-b border-gray-100">
+                                <div className="relative group cursor-pointer flex-shrink-0">
+                                    <div className="w-12 sm:w-14 h-12 sm:h-14 rounded-full overflow-hidden shadow-lg shadow-green-200 border-2 border-white">
                                         {user.avatar ? (
                                             <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
                                         ) : (
                                             <div className="w-full h-full bg-gradient-to-br from-primary to-green-600 flex items-center justify-center text-white">
-                                                <User size={28} />
+                                                <User size={24} className="sm:w-7 sm:h-7" />
                                             </div>
                                         )}
                                     </div>
                                     <label className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white">
-                                        <Camera size={16} />
+                                        <Camera size={14} className="sm:w-4 sm:h-4" />
                                         <input type="file" className="hidden" accept="image/*" onChange={handleAvatarChange} disabled={uploading} />
                                     </label>
                                     {uploading && (
                                         <div className="absolute inset-0 bg-white/60 rounded-full flex items-center justify-center">
-                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                                            <div className="animate-spin rounded-full h-3 sm:h-4 w-3 sm:w-4 border-b-2 border-primary"></div>
                                         </div>
                                     )}
                                 </div>
-                                <div className="overflow-hidden">
-                                    <h3 className="font-bold text-gray-800 text-lg truncate">{user.name}</h3>
-                                    <p className="text-sm text-gray-500 truncate">{user.city} - {user.state}</p>
+                                <div className="overflow-hidden min-w-0">
+                                    <h3 className="font-bold text-gray-800 text-base sm:text-lg truncate">{user.name}</h3>
+                                    <p className="text-xs sm:text-sm text-gray-500 truncate">{user.city} - {user.state}</p>
                                 </div>
                             </div>
 
-                            <nav className="space-y-2">
-                                <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                                    Menu Principal
+                            <nav className="space-y-1">
+                                <div className="px-3 sm:px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                                    Menu
                                 </div>
                                 {menuItems.map((item) => {
                                     const Icon = item.icon;
@@ -104,23 +104,25 @@ const Dashboard = () => {
                                         <Link
                                             key={item.path}
                                             to={item.path}
-                                            className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all font-medium group ${isActive
+                                            className={`flex items-center gap-3 px-3 sm:px-4 py-3 sm:py-3.5 rounded-lg sm:rounded-2xl transition-all font-medium text-sm sm:text-base group min-h-[44px] sm:min-h-auto touch-manipulation ${isActive
                                                 ? 'bg-primary text-white shadow-lg shadow-green-200 transform scale-105'
-                                                : 'text-gray-600 hover:bg-gray-50 hover:text-primary hover:pl-6'
+                                                : 'text-gray-600 hover:bg-gray-50 hover:text-primary hover:pl-4 sm:hover:pl-6'
                                                 }`}
                                         >
-                                            <Icon size={20} className={`transition-transform ${isActive ? '' : 'group-hover:scale-110'}`} />
-                                            {item.label}
+                                            <Icon size={18} className="sm:w-5 sm:h-5 flex-shrink-0" />
+                                            <span className="hidden sm:inline">{item.label}</span>
+                                            <span className="sm:hidden text-xs truncate">{item.label.split(' ')[0]}</span>
                                         </Link>
                                     );
                                 })}
 
                                 <button
                                     onClick={handleLogout}
-                                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all font-medium text-red-500 hover:bg-red-50 hover:pl-6 mt-8"
+                                    className="w-full flex items-center gap-3 px-3 sm:px-4 py-3 sm:py-3.5 rounded-lg sm:rounded-2xl transition-all font-medium text-sm sm:text-base text-red-500 hover:bg-red-50 hover:pl-4 sm:hover:pl-6 mt-6 sm:mt-8 min-h-[44px] sm:min-h-auto touch-manipulation"
                                 >
-                                    <LogOut size={20} />
-                                    Sair da Conta
+                                    <LogOut size={18} className="sm:w-5 sm:h-5 flex-shrink-0" />
+                                    <span className="hidden sm:inline">Sair da Conta</span>
+                                    <span className="sm:hidden text-xs">Sair</span>
                                 </button>
                             </nav>
                         </div>

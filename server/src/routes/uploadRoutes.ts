@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
@@ -17,9 +18,7 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: 'doebrasil_uploads', // Folder name in your cloudinary
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-    transformation: [{ width: 1000, height: 1000, crop: 'limit' }]
+    folder: 'doebrasil_uploads',
   } as any,
 });
 

@@ -5,35 +5,27 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const multer_1 = __importDefault(require("multer"));
-const path_1 = __importDefault(require("path"));
-const fs_1 = __importDefault(require("fs"));
+const cloudinary_1 = require("cloudinary");
+const multer_storage_cloudinary_1 = require("multer-storage-cloudinary");
 const router = (0, express_1.Router)();
-// Configure storage
-const storage = multer_1.default.diskStorage({
-    destination: (req, file, cb) => {
-        const uploadDir = path_1.default.join(__dirname, '../../uploads');
-        if (!fs_1.default.existsSync(uploadDir)) {
-            fs_1.default.mkdirSync(uploadDir, { recursive: true });
-        }
-        cb(null, uploadDir);
+// Configure Cloudinary
+cloudinary_1.v2.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+// Configure storage specific to multer-storage-cloudinary
+const storage = new multer_storage_cloudinary_1.CloudinaryStorage({
+    cloudinary: cloudinary_1.v2,
+    params: {
+        folder: 'doebrasil_uploads', // Folder name in your cloudinary
+        allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+        transformation: [{ width: 1000, height: 1000, crop: 'limit' }]
     },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + path_1.default.extname(file.originalname));
-    }
 });
 const upload = (0, multer_1.default)({
     storage: storage,
     limits: { fileSize: 7 * 1024 * 1024 }, // 7MB limit
-    fileFilter: (req, file, cb) => {
-        const filetypes = /jpeg|jpg|png|webp/;
-        const mimetype = filetypes.test(file.mimetype);
-        const extname = filetypes.test(path_1.default.extname(file.originalname).toLowerCase());
-        if (mimetype && extname) {
-            return cb(null, true);
-        }
-        cb(new Error('Apenas imagens são permitidas!'));
-    }
 });
 const authMiddleware_1 = require("../middleware/authMiddleware");
 router.post('/', authMiddleware_1.authenticateToken, (req, res, next) => {
@@ -50,8 +42,8 @@ router.post('/', authMiddleware_1.authenticateToken, (req, res, next) => {
     if (!req.file) {
         return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
     }
-    // Return the public URL
-    const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    // Return the Cloudinary public URL
+    const fileUrl = req.file.path;
     console.log('DEBUG: File URL:', fileUrl);
     res.json({ url: fileUrl });
 });
