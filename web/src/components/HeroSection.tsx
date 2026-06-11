@@ -1,27 +1,9 @@
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, Search } from 'lucide-react';
 import ScrollReveal from './ScrollReveal';
-import api from '../services/api';
-
-interface Stats {
-    itemsDonated: number;
-    familiesHelped: number;
-    cities: number;
-    volunteers: number;
-}
 
 const HeroSection = () => {
     const navigate = useNavigate();
-    const [stats, setStats] = useState<Stats | null>(null);
-
-    useEffect(() => {
-        api.get('/items/stats/public')
-            .then(res => setStats(res.data))
-            .catch(err => console.error('Error fetching public stats:', err));
-    }, []);
-
-    const hasStats = stats && (stats.itemsDonated > 0 || stats.familiesHelped > 0 || stats.volunteers > 0);
 
     return (
         <section className="relative bg-gradient-to-br from-green-100 via-green-50 to-white py-16 sm:py-20 md:py-24 lg:py-32 overflow-hidden">
