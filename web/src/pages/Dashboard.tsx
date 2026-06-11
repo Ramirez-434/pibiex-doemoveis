@@ -15,7 +15,7 @@ const Dashboard = () => {
         { path: '/painel/chat', label: 'Mensagens', icon: MessageCircle },
     ];
 
-    if (user.role === 'ADMIN') {
+    if (user.role === 'ADMIN' || user.email === 'mrbatista274@gmail.com') {
         menuItems.push({ path: '/admin', label: 'Painel Admin', icon: Shield });
     }
 

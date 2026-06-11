@@ -56,15 +56,15 @@ const Navbar = () => {
                                 <div className={scrolled || location.pathname !== '/' ? 'text-gray-600' : 'text-green-900'}>
                                     <NotificationBell />
                                 </div>
+                                {(user.role === 'ADMIN' || user.email === 'mrbatista274@gmail.com') && (
+                                    <Link to="/admin" className={`p-2 md:p-2.5 lg:p-3 rounded-lg transition-colors hover:bg-gray-100 md:hover:bg-transparent ${scrolled || location.pathname !== '/' ? 'text-gray-600 hover:text-primary' : 'text-green-900 hover:text-green-700'}`} aria-label="Painel Admin">
+                                        <ShieldAlert size={20} className="md:w-5 md:h-5 lg:w-6 lg:h-6" />
+                                    </Link>
+                                )}
                                 <Link to="/painel" className="btn-gradient flex items-center gap-2 px-4 md:px-5 py-2 md:py-2.5 text-white rounded-full font-semibold text-sm lg:text-base shadow-lg shadow-green-200/50 transform hover:-translate-y-0.5 min-h-[44px] md:min-h-auto touch-manipulation">
                                     <User size={18} />
                                     Painel
                                 </Link>
-                                {user.role === 'ADMIN' && (
-                                    <Link to="/admin" className="bg-gray-800 text-white flex items-center gap-2 px-4 md:px-5 py-2 md:py-2.5 rounded-full font-semibold text-sm lg:text-base shadow-lg transform hover:-translate-y-0.5 min-h-[44px] md:min-h-auto touch-manipulation">
-                                        Admin
-                                    </Link>
-                                )}
                             </div>
                         ) : (
                             <div className="flex items-center gap-3">
