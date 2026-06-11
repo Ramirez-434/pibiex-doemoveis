@@ -31,7 +31,7 @@ const Navbar = () => {
                         <div className="w-10 h-10 bg-gradient-to-br from-primary to-green-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:scale-110 transition-transform">
                             D
                         </div>
-                        <span className={`text-2xl font-bold tracking-tight transition-colors ${scrolled || location.pathname !== '/' ? 'text-gray-800' : 'text-white'
+                        <span className={`text-2xl font-bold tracking-tight transition-colors ${scrolled || location.pathname !== '/' ? 'text-gray-800' : 'text-green-900'
                             }`}>
                             Doe + Brasil
                         </span>

@@ -66,21 +66,6 @@ const HeroSection = () => {
                     </button>
                 </div>
 
-                {hasStats && (
-                    <ScrollReveal animation="fade-up" delay={400} className="mt-12 sm:mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8 max-w-4xl mx-auto text-center">
-                        {[
-                            { label: 'Itens Doados', value: `${stats.itemsDonated}+` },
-                            { label: 'Famílias Ajudadas', value: `${stats.familiesHelped}+` },
-                            { label: 'Cidades', value: `${stats.cities}` },
-                            { label: 'Voluntários', value: `${stats.volunteers}+` },
-                        ].map((stat, idx) => (
-                            <div key={idx} className="flex flex-col">
-                                <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">{stat.value}</span>
-                                <span className="text-xs sm:text-sm text-gray-500 uppercase tracking-wide font-medium">{stat.label}</span>
-                            </div>
-                        ))}
-                    </ScrollReveal>
-                )}
             </div>
         </section>
     );
