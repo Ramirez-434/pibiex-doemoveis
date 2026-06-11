@@ -53,10 +53,10 @@ const Catalog = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 font-sans">
+        <div className="min-h-screen bg-gray-50 font-sans pt-24">
             <Breadcrumbs />
             {/* Hero Search Section */}
-            <div className="bg-primary pt-16 sm:pt-20 md:pt-24 lg:pt-32 pb-12 sm:pb-14 md:pb-16 lg:pb-20 px-3 sm:px-4 relative overflow-hidden">
+            <div className="bg-primary pt-8 sm:pt-12 md:pt-16 pb-12 sm:pb-14 md:pb-16 lg:pb-20 px-3 sm:px-4 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-green-600 to-green-900 opacity-90 z-0 animate-gradient"></div>
                 <div className="absolute -top-24 -left-24 w-64 sm:w-96 h-64 sm:h-96 bg-white opacity-10 rounded-full blur-3xl"></div>
                 <div className="absolute bottom-0 right-0 w-48 sm:w-80 h-48 sm:h-80 bg-yellow-400 opacity-20 rounded-full blur-3xl"></div>

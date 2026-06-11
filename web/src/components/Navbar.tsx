@@ -23,7 +23,7 @@ const Navbar = () => {
     }, [location]);
 
     return (
-        <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/80 backdrop-blur-md shadow-lg py-3' : 'bg-transparent py-4 sm:py-5'
+        <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled || location.pathname !== '/' ? 'bg-white/95 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-4 sm:py-5'
             }`} style={{ paddingTop: 'max(var(--safe-area-inset-top, 0px), 1rem)' }}>
             <div className="container mx-auto px-3 sm:px-4">
                 <div className="flex justify-between items-center">
