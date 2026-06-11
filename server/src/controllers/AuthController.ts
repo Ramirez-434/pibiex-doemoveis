@@ -53,11 +53,11 @@ export const login = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const token = jwt.sign({ userId: user.id, email: user.email }, SECRET_KEY, {
+        const token = jwt.sign({ userId: user.id, email: user.email, role: user.role }, SECRET_KEY, {
             expiresIn: '7d',
         });
 
-        res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
+        res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role, city: user.city, state: user.state, avatar: user.avatar } });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal server error' });
