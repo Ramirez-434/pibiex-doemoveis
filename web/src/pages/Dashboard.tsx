@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { PlusCircle, Package, HeartHandshake, User, LogOut, MessageCircle, Camera } from 'lucide-react';
+import { PlusCircle, Package, HeartHandshake, User, LogOut, MessageCircle, Camera, Shield } from 'lucide-react';
 import api from '../services/api';
 
 const Dashboard = () => {
@@ -14,6 +14,10 @@ const Dashboard = () => {
         { path: '/painel/solicitacoes', label: 'Minhas Solicitações', icon: HeartHandshake },
         { path: '/painel/chat', label: 'Mensagens', icon: MessageCircle },
     ];
+
+    if (user.role === 'ADMIN') {
+        menuItems.push({ path: '/admin', label: 'Painel Admin', icon: Shield });
+    }
 
     const handleLogout = () => {
         localStorage.removeItem('token');
