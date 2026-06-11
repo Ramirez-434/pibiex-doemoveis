@@ -28,6 +28,8 @@ jobs:
       
     - name: 🔨 Build Project
       working-directory: ./web
+      env:
+        VITE_API_URL: https://doebrasil.onrender.com
       run: npm run build
       
     - name: 📂 Sync files to HostGator
