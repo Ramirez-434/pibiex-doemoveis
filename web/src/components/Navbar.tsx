@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User, MessageCircle } from 'lucide-react';
+import { Menu, X, User, MessageCircle, ShieldAlert } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 
 const Navbar = () => {
