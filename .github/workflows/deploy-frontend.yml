@@ -41,5 +41,3 @@ jobs:
         local-dir: ./web/dist/
         # Ao apontar o usuário FTP direto para a raiz do domínio no cPanel, deixamos server-dir vazio ou como ./
         server-dir: ./
-        # Apaga arquivos antigos que não existem mais no build novo (limpa o lixo)
-        dangerous-clean-slate: true
