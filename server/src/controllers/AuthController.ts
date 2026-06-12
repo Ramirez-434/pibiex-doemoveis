@@ -102,7 +102,10 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
             </div>
         `;
 
-        await sendEmail(email, 'DoeBrasil - Recuperação de Senha', html);
+        // Dispara o e-mail em background (não bloqueia a resposta para o usuário)
+        sendEmail(email, 'DoeBrasil - Recuperação de Senha', html).catch((err) => {
+            console.error('Falha ao enviar e-mail em background:', err);
+        });
 
         res.status(200).json({ message: 'Se o email existir, um link de recuperação será enviado.' });
     } catch (error) {
