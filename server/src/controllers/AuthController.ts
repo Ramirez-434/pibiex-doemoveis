@@ -88,7 +88,8 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
         });
 
         // Send Email
-        const resetLink = `http://localhost:5173/redefinir-senha?token=${token}`;
+        const baseUrl = process.env.FRONTEND_URL || 'https://doemaisbr.com.br';
+        const resetLink = `${baseUrl}/redefinir-senha?token=${token}`;
 
         const html = `
             <div style="font-family: sans-serif; padding: 20px;">
