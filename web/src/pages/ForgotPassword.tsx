@@ -43,9 +43,6 @@ const ForgotPassword = () => {
                         <p className="text-gray-600 mb-6 text-sm">
                             Enviamos um link para <strong>{email}</strong>. Clique nele para redefinir sua senha.
                         </p>
-                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-xs text-yellow-800 mb-6 text-left">
-                            <strong>Nota (Simulação):</strong> Como não há servidor de email real, verifique o <strong>CONSOLE DO SERVIDOR</strong> para o link.
-                        </div>
                         <Link to="/login" className="text-primary font-bold hover:underline text-sm">
                             Voltar para o Login
                         </Link>
