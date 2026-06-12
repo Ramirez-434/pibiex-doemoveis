@@ -47,19 +47,22 @@ const Catalog = () => {
 
     // Ao mudar o Estado, busca cidades na API do IBGE
     useEffect(() => {
-        if (!selectedState) {
-            setCities([]);
-            setSelectedCity('');
-            return;
-        }
+        // 1. Limpa a cidade IMEDIATAMENTE ao trocar de estado
+        //    (evita o "Bug da Cidade Fantasma": estado=RJ + cidade=Campinas)
+        setSelectedCity('');
+        setCities([]);
+
+        // 2. Se voltou para "Selecione o Estado", para aqui
+        if (!selectedState) return;
+
+        // 3. Busca as cidades do novo estado via IBGE
         setLoadingCities(true);
-        fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${selectedState}/municipios`)
-            .then(r => r.json())
-            .then((data: { nome: string }[]) => {
-                setCities(data.map(m => m.nome));
-                setSelectedCity('');
+        api.get(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${selectedState}/municipios`)
+            .then(r => setCities((r.data as { nome: string }[]).map(m => m.nome)))
+            .catch(err => {
+                console.error('Serviço de cidades (IBGE) indisponível:', err);
+                setCities([]); // mantém a tela utilizável mesmo com o IBGE fora
             })
-            .catch(() => setCities([]))
             .finally(() => setLoadingCities(false));
     }, [selectedState]);
 
