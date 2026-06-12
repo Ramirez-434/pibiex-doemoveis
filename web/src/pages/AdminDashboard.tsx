@@ -117,8 +117,9 @@ const AdminDashboard = () => {
     if (loading) return <div className="text-center p-10 mt-20">Carregando painel admin...</div>;
 
     return (
-        <div className="container mx-auto p-4 sm:p-6 mt-10 space-y-8">
-            {csvError && (
+        <div className="min-h-screen bg-gray-50 pt-20 sm:pt-24">
+            <div className="container mx-auto p-4 sm:p-6 space-y-8">
+                {csvError && (
                 <Toast 
                     message={csvError} 
                     type="error" 
@@ -254,6 +255,7 @@ const AdminDashboard = () => {
                     </div>
                 </div>
             </div>
+        </div>
         </div>
     );
 };
