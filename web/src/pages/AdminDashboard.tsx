@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
-import { UserX, Trash2, TrendingUp, PieChart as PieIcon, Users, Package, HeartHandshake } from 'lucide-react';
+import { UserX, Trash2, TrendingUp, PieChart as PieIcon, Users, Package, HeartHandshake, Download } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { Toast } from '../components/Toast';
 
 interface User {
     id: string;
@@ -38,6 +39,8 @@ const AdminDashboard = () => {
     const [items, setItems] = useState<Item[]>([]);
     const [summary, setSummary] = useState<DashboardSummary | null>(null);
     const [loading, setLoading] = useState(true);
+    const [downloadingCSV, setDownloadingCSV] = useState(false);
+    const [csvError, setCsvError] = useState<string | null>(null);
 
     const fetchData = async () => {
         try {
@@ -83,11 +86,57 @@ const AdminDashboard = () => {
         }
     };
 
+    const downloadCSV = async () => {
+        setDownloadingCSV(true);
+        setCsvError(null);
+        try {
+            const response = await api.get('/admin/reports/donations/csv', { responseType: 'blob' });
+            
+            // Intercepta se a API retornou um erro disfarçado de Blob
+            if (response.data.type === 'application/json') {
+                const text = await response.data.text();
+                const errorObj = JSON.parse(text);
+                throw new Error(errorObj.error || 'Erro desconhecido');
+            }
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'relatorio_doacoes.csv');
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (error: any) {
+            console.error('Error downloading CSV:', error);
+            setCsvError(error.message || 'Falha ao baixar o relatório.');
+        } finally {
+            setDownloadingCSV(false);
+        }
+    };
+
     if (loading) return <div className="text-center p-10 mt-20">Carregando painel admin...</div>;
 
     return (
         <div className="container mx-auto p-4 sm:p-6 mt-10 space-y-8">
-            <h1 className="text-3xl font-bold text-gray-800">Painel Administrativo</h1>
+            {csvError && (
+                <Toast 
+                    message={csvError} 
+                    type="error" 
+                    onClose={() => setCsvError(null)} 
+                />
+            )}
+            
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <h1 className="text-3xl font-bold text-gray-800">Painel Administrativo</h1>
+                <button 
+                    onClick={downloadCSV} 
+                    disabled={downloadingCSV}
+                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
+                >
+                    <Download size={20} />
+                    {downloadingCSV ? 'Gerando...' : 'Exportar Planilha (CSV)'}
+                </button>
+            </div>
             
             {summary && (
                 <>

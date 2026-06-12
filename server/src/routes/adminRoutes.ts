@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../server';
 import { authenticateToken, authorizeAdmin } from '../middleware/authMiddleware';
+import { stringify } from 'csv-stringify/sync';
 
 const router = Router();
 
@@ -156,6 +157,76 @@ router.delete('/items/:id', authenticateToken, authorizeAdmin, async (req, res) 
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Failed to delete item' });
+    }
+});
+
+// Export CSV of Donations
+router.get('/reports/donations/csv', authenticateToken, authorizeAdmin, async (req, res) => {
+    try {
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', 'attachment; filename="relatorio_doacoes.csv"');
+        res.write('\uFEFF'); // BOM para Excel reconhecer UTF-8
+        
+        // Escreve o cabeçalho
+        res.write(stringify([['ID', 'Titulo', 'Categoria', 'Status', 'Nome do Doador', 'Email do Doador', 'Recebedor (Aprovado)', 'Data de Criacao']]));
+
+        const batchSize = 500;
+        let cursor = null;
+
+        const statusMap: Record<string, string> = {
+            'AVAILABLE': 'Disponível',
+            'RESERVED': 'Reservado',
+            'DONATED': 'Doado'
+        };
+
+        while (true) {
+            const items: any[] = await prisma.item.findMany({
+                take: batchSize,
+                ...(cursor && { cursor: { id: cursor }, skip: 1 }),
+                where: { deletedAt: null },
+                include: { 
+                    donor: true, 
+                    requests: { 
+                        where: { status: 'APPROVED' },
+                        include: { user: true } 
+                    } 
+                },
+                orderBy: { id: 'asc' } // Necessário para cursor pagination
+            });
+
+            if (items.length === 0) break;
+
+            for (const item of items) {
+                const receiverName = item.requests && item.requests.length > 0 
+                    ? item.requests[0].user.name 
+                    : 'N/A';
+                
+                const row = [
+                    item.id,
+                    item.title,
+                    item.category,
+                    statusMap[item.status] || item.status,
+                    item.donor?.name || 'Desconhecido',
+                    item.donor?.email || 'Desconhecido',
+                    receiverName,
+                    item.createdAt.toISOString()
+                ];
+                
+                res.write(stringify([row]));
+            }
+
+            cursor = items[items.length - 1].id;
+        }
+
+        res.end();
+    } catch (error) {
+        console.error('Error generating CSV stream:', error);
+        // Se a stream já começou, é difícil mandar JSON de erro no meio, mas o res.end() encerra
+        if (!res.headersSent) {
+            res.status(500).json({ error: 'Failed to generate CSV' });
+        } else {
+            res.end();
+        }
     }
 });
 
