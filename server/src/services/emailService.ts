@@ -12,6 +12,17 @@ const transporter = nodemailer.createTransport({
 });
 
 export const sendEmail = async (to: string, subject: string, html: string) => {
+    // Modo simulação se não houver credenciais SMTP
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+        console.log('===================================================');
+        console.log('📧 MODO SIMULAÇÃO DE E-MAIL (Sem credenciais SMTP)');
+        console.log(`Para: ${to}`);
+        console.log(`Assunto: ${subject}`);
+        console.log(`Conteúdo HTML: \n${html}`);
+        console.log('===================================================');
+        return { messageId: 'simulated-email-id' };
+    }
+
     try {
         const info = await transporter.sendMail({
             from: `"DoeBrasil" <${process.env.SMTP_USER}>`, // sender address
