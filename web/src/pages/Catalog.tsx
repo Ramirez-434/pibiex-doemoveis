@@ -5,6 +5,7 @@ import ItemCard from '../components/ItemCard';
 import ScrollReveal from '../components/ScrollReveal';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { SkeletonGrid } from '../components/Skeleton';
+import { Toast } from '../components/Toast';
 
 interface Item {
     id: string;
@@ -43,14 +44,15 @@ const Catalog = () => {
     const [selectedState, setSelectedState] = useState('');
     const [cities, setCities] = useState<string[]>([]);
     const [selectedCity, setSelectedCity] = useState('');
+    const [ibgeError, setIbgeError] = useState(false);
     const [loadingCities, setLoadingCities] = useState(false);
 
     // Ao mudar o Estado, busca cidades na API do IBGE
     useEffect(() => {
-        // 1. Limpa a cidade IMEDIATAMENTE ao trocar de estado
-        //    (evita o "Bug da Cidade Fantasma": estado=RJ + cidade=Campinas)
+        // 1. Limpa a cidade e o erro IMEDIATAMENTE ao trocar de estado
         setSelectedCity('');
         setCities([]);
+        setIbgeError(false);
 
         // 2. Se voltou para "Selecione o Estado", para aqui
         if (!selectedState) return;
@@ -61,7 +63,8 @@ const Catalog = () => {
             .then(r => setCities((r.data as { nome: string }[]).map(m => m.nome)))
             .catch(err => {
                 console.error('Serviço de cidades (IBGE) indisponível:', err);
-                setCities([]); // mantém a tela utilizável mesmo com o IBGE fora
+                setCities([]);
+                setIbgeError(true); // dispara Toast amigável para o usuário
             })
             .finally(() => setLoadingCities(false));
     }, [selectedState]);
@@ -107,6 +110,15 @@ const Catalog = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 font-sans pt-24">
+            {/* Toast de erro da API do IBGE — visível ao usuário */}
+            {ibgeError && (
+                <Toast
+                    message="Erro ao carregar cidades. Verifique sua conexão e tente novamente."
+                    type="error"
+                    onClose={() => setIbgeError(false)}
+                    duration={5000}
+                />
+            )}
             <Breadcrumbs />
             {/* Hero Search Section */}
             <div className="bg-primary pt-8 sm:pt-12 md:pt-16 pb-12 sm:pb-14 md:pb-16 lg:pb-20 px-3 sm:px-4 relative overflow-hidden">
