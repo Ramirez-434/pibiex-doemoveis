@@ -23,32 +23,92 @@ router.get('/users', authenticateToken, authorizeAdmin, async (req, res) => {
     }
 });
 
-// Get KPI Stats
-router.get('/stats', authenticateToken, authorizeAdmin, async (req, res) => {
+// Get Dashboard Summary (BFF Pattern)
+router.get('/dashboard/summary', authenticateToken, authorizeAdmin, async (req, res) => {
     try {
-        const totalUsers = await prisma.user.count({ where: { isActive: true } });
-        const totalItems = await prisma.item.count();
-        
-        // Famílias Ajudadas = Total de Solicitações Aprovadas
-        const familiesHelped = await prisma.donationRequest.count({
-            where: { status: 'APPROVED' }
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+        sixMonthsAgo.setDate(1); // Inicio do mes de 6 meses atras
+        sixMonthsAgo.setHours(0, 0, 0, 0);
+
+        const [
+            recentItems,
+            itemsByStatus,
+            totalUsers,
+            totalActiveItems,
+            approvedRequests,
+            totalRequests
+        ] = await prisma.$transaction([
+            // 1. Itens para o Gráfico de Barras (últimos 6 meses, ignorando deletados)
+            prisma.item.findMany({
+                where: { deletedAt: null, createdAt: { gte: sixMonthsAgo } },
+                select: { createdAt: true }
+            }),
+            // 2. Gráfico de Rosca (Status dos Itens, ignorando deletados)
+            prisma.item.groupBy({
+                by: ['status'],
+                _count: true,
+                where: { deletedAt: null },
+                orderBy: { status: 'asc' }
+            }),
+            // 3. Usuários Ativos (Ignorando soft deletes)
+            prisma.user.count({ where: { isActive: true } }),
+            // 4. Itens Disponíveis (Ignorando deletados)
+            prisma.item.count({ where: { deletedAt: null, status: 'AVAILABLE' } }),
+            // 5. Famílias Ajudadas (Solicitações Aprovadas)
+            prisma.donationRequest.count({ where: { status: 'APPROVED' } }),
+            // 6. Total de Solicitações (para cálculo da taxa)
+            prisma.donationRequest.count()
+        ]);
+
+        // Processar itens por mês para o gráfico de barras
+        const monthsStr = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        const itemsPerMonthMap = new Map<string, number>();
+
+        // Inicializar ultimos 6 meses com 0
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date();
+            d.setMonth(d.getMonth() - i);
+            const key = `${monthsStr[d.getMonth()]} ${d.getFullYear()}`;
+            itemsPerMonthMap.set(key, 0);
+        }
+
+        recentItems.forEach(item => {
+            const d = new Date(item.createdAt);
+            const key = `${monthsStr[d.getMonth()]} ${d.getFullYear()}`;
+            if (itemsPerMonthMap.has(key)) {
+                itemsPerMonthMap.set(key, (itemsPerMonthMap.get(key) || 0) + 1);
+            }
         });
 
-        // Taxa de Sucesso = (Aprovadas / Total) * 100
-        const totalRequests = await prisma.donationRequest.count();
-        const successRate = totalRequests > 0 
-            ? Math.round((familiesHelped / totalRequests) * 100) 
-            : 0;
+        const itemsPerMonth = Array.from(itemsPerMonthMap.entries()).map(([month, count]) => ({
+            month,
+            count
+        }));
+
+        // Tratar NaN na taxa de sucesso
+        const successRate = totalRequests === 0 
+            ? 0 
+            : Math.round((approvedRequests / totalRequests) * 100);
 
         res.json({
-            totalUsers,
-            totalItems,
-            familiesHelped,
-            successRate
+            kpis: {
+                totalUsers,
+                totalActiveItems,
+                familiesHelped: approvedRequests,
+                successRate
+            },
+            charts: {
+                itemsPerMonth,
+                itemsByStatus: itemsByStatus.map(s => ({
+                    status: s.status,
+                    count: s._count
+                }))
+            }
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Failed to fetch stats' });
+        res.status(500).json({ error: 'Failed to fetch dashboard summary' });
     }
 });
 

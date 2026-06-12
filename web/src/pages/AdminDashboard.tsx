@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
-import { UserX, Trash2 } from 'lucide-react';
+import { UserX, Trash2, TrendingUp, PieChart as PieIcon, Users, Package, HeartHandshake } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 interface User {
     id: string;
@@ -17,29 +18,37 @@ interface Item {
     status: string;
 }
 
-interface Stats {
-    totalUsers: number;
-    totalItems: number;
-    familiesHelped: number;
-    successRate: number;
+interface DashboardSummary {
+    kpis: {
+        totalUsers: number;
+        totalActiveItems: number;
+        familiesHelped: number;
+        successRate: number;
+    };
+    charts: {
+        itemsPerMonth: { month: string; count: number }[];
+        itemsByStatus: { status: string; count: number }[];
+    };
 }
+
+const COLORS = ['#10b981', '#f59e0b', '#3b82f6', '#8b5cf6'];
 
 const AdminDashboard = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [items, setItems] = useState<Item[]>([]);
-    const [stats, setStats] = useState<Stats | null>(null);
+    const [summary, setSummary] = useState<DashboardSummary | null>(null);
     const [loading, setLoading] = useState(true);
 
     const fetchData = async () => {
         try {
-            const [usersRes, itemsRes, statsRes] = await Promise.all([
+            const [usersRes, itemsRes, summaryRes] = await Promise.all([
                 api.get('/admin/users'),
-                api.get('/items'), // Assuming there's a public or admin route to get all items
-                api.get('/admin/stats')
+                api.get('/items', { params: { limit: 100 } }),
+                api.get('/admin/dashboard/summary')
             ]);
             setUsers(usersRes.data);
             setItems(itemsRes.data);
-            setStats(statsRes.data);
+            setSummary(summaryRes.data);
         } catch (error) {
             console.error('Error fetching admin data', error);
             alert('Acesso negado ou erro ao carregar.');
@@ -74,49 +83,102 @@ const AdminDashboard = () => {
         }
     };
 
-    if (loading) return <div className="text-center p-10">Carregando painel admin...</div>;
+    if (loading) return <div className="text-center p-10 mt-20">Carregando painel admin...</div>;
 
     return (
-        <div className="container mx-auto p-4 sm:p-6 mt-10">
-            <h1 className="text-3xl font-bold mb-8">Painel Administrativo</h1>
+        <div className="container mx-auto p-4 sm:p-6 mt-10 space-y-8">
+            <h1 className="text-3xl font-bold text-gray-800">Painel Administrativo</h1>
             
-            {stats && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-center">
-                        <p className="text-gray-500 text-sm">Usuários Ativos</p>
-                        <p className="text-2xl font-bold text-primary">{stats.totalUsers}</p>
+            {summary && (
+                <>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-center items-center text-center">
+                            <Users className="text-blue-500 mb-2" size={24} />
+                            <p className="text-gray-500 text-sm font-medium">Usuários Ativos</p>
+                            <p className="text-3xl font-bold text-gray-800">{summary.kpis.totalUsers}</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-center items-center text-center">
+                            <Package className="text-green-500 mb-2" size={24} />
+                            <p className="text-gray-500 text-sm font-medium">Móveis Ativos</p>
+                            <p className="text-3xl font-bold text-gray-800">{summary.kpis.totalActiveItems}</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-center items-center text-center">
+                            <HeartHandshake className="text-rose-500 mb-2" size={24} />
+                            <p className="text-gray-500 text-sm font-medium">Famílias Ajudadas</p>
+                            <p className="text-3xl font-bold text-gray-800">{summary.kpis.familiesHelped}</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-center items-center text-center">
+                            <TrendingUp className="text-yellow-500 mb-2" size={24} />
+                            <p className="text-gray-500 text-sm font-medium">Taxa de Sucesso</p>
+                            <p className="text-3xl font-bold text-gray-800">{summary.kpis.successRate}%</p>
+                        </div>
                     </div>
-                    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-center">
-                        <p className="text-gray-500 text-sm">Móveis Cadastrados</p>
-                        <p className="text-2xl font-bold text-primary">{stats.totalItems}</p>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                            <div className="flex items-center gap-2 mb-6">
+                                <TrendingUp size={20} className="text-primary" />
+                                <h3 className="font-bold text-gray-800 text-lg">Crescimento de Cadastros</h3>
+                            </div>
+                            <div className="h-64 w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={summary.charts.itemsPerMonth}>
+                                        <XAxis dataKey="month" stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} />
+                                        <YAxis stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} />
+                                        <Tooltip cursor={{fill: '#f3f4f6'}} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+                                        <Bar dataKey="count" fill="#10b981" radius={[4, 4, 0, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                            <div className="flex items-center gap-2 mb-6">
+                                <PieIcon size={20} className="text-primary" />
+                                <h3 className="font-bold text-gray-800 text-lg">Efetividade (Status dos Itens)</h3>
+                            </div>
+                            <div className="h-64 w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={summary.charts.itemsByStatus}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={60}
+                                            outerRadius={80}
+                                            paddingAngle={5}
+                                            dataKey="count"
+                                            nameKey="status"
+                                        >
+                                            {summary.charts.itemsByStatus.map((_, index) => (
+                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+                                        <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
                     </div>
-                    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-center">
-                        <p className="text-gray-500 text-sm">Famílias Ajudadas</p>
-                        <p className="text-2xl font-bold text-primary">{stats.familiesHelped}</p>
-                    </div>
-                    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-center">
-                        <p className="text-gray-500 text-sm">Taxa de Sucesso</p>
-                        <p className="text-2xl font-bold text-primary">{stats.successRate}%</p>
-                    </div>
-                </div>
+                </>
             )}
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                        <UserX size={20} className="text-red-500" />
-                        Gerenciar Usuários
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 overflow-hidden flex flex-col">
+                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-red-600">
+                        <UserX size={20} /> Gerenciar Usuários
                     </h2>
-                    <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
-                        {users.map(user => (
-                            <div key={user.id} className="flex justify-between items-center p-3 border rounded-lg hover:bg-gray-50">
+                    <div className="overflow-y-auto flex-1 max-h-96 pr-2">
+                        {users.map((u) => (
+                            <div key={u.id} className="flex justify-between items-center p-3 hover:bg-gray-50 border border-gray-100 rounded-lg mb-2 transition-colors">
                                 <div>
-                                    <p className="font-semibold">{user.name} {user.role === 'ADMIN' && <span className="text-xs bg-primary text-white px-2 py-1 rounded ml-2">ADMIN</span>}</p>
-                                    <p className="text-sm text-gray-500">{user.email}</p>
+                                    <p className="font-semibold text-sm">{u.name} <span className="text-xs bg-green-100 text-green-800 px-2 rounded font-bold ml-2">{u.role}</span></p>
+                                    <p className="text-xs text-gray-500">{u.email}</p>
                                 </div>
-                                {user.role !== 'ADMIN' && (
-                                    <button onClick={() => deleteUser(user.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full transition">
-                                        <UserX size={18} />
+                                {u.role !== 'ADMIN' && (
+                                    <button onClick={() => deleteUser(u.id)} className="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded-lg hover:bg-red-100 transition-colors">
+                                        <Trash2 size={18} />
                                     </button>
                                 )}
                             </div>
@@ -124,19 +186,18 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                        <Trash2 size={20} className="text-red-500" />
-                        Gerenciar Itens (Móveis)
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 overflow-hidden flex flex-col">
+                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-red-600">
+                        <Trash2 size={20} /> Gerenciar Itens (Móveis)
                     </h2>
-                    <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
-                        {items.map(item => (
-                            <div key={item.id} className="flex justify-between items-center p-3 border rounded-lg hover:bg-gray-50">
+                    <div className="overflow-y-auto flex-1 max-h-96 pr-2">
+                        {items.length === 0 ? <p className="text-gray-500 text-sm">Nenhum item.</p> : items.map((i) => (
+                            <div key={i.id} className="flex justify-between items-center p-3 hover:bg-gray-50 border border-gray-100 rounded-lg mb-2 transition-colors">
                                 <div>
-                                    <p className="font-semibold">{item.title}</p>
-                                    <p className="text-sm text-gray-500">{item.category} • {item.status}</p>
+                                    <p className="font-semibold text-sm truncate max-w-[200px]">{i.title}</p>
+                                    <p className="text-xs text-gray-500">{i.category} • <span className="font-bold">{i.status}</span></p>
                                 </div>
-                                <button onClick={() => deleteItem(item.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full transition">
+                                <button onClick={() => deleteItem(i.id)} className="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded-lg hover:bg-red-100 transition-colors">
                                     <Trash2 size={18} />
                                 </button>
                             </div>
