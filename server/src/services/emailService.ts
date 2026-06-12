@@ -9,6 +9,12 @@ const transporter = nodemailer.createTransport({
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
     },
+    tls: {
+        // Ignora erros de certificado SSL (comum no cPanel/Hostgator com 'mail.doemaisbr.com.br')
+        rejectUnauthorized: false
+    },
+    connectionTimeout: 10000, // Timeout de 10s para não congelar o Frontend
+    greetingTimeout: 10000,
 });
 
 export const sendEmail = async (to: string, subject: string, html: string) => {
