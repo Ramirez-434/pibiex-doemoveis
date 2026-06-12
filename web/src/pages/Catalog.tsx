@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Filter, X, Package } from 'lucide-react';
+import { Search, Filter, X, Package, MapPin, ChevronDown } from 'lucide-react';
 import api from '../services/api';
 import ItemCard from '../components/ItemCard';
 import ScrollReveal from '../components/ScrollReveal';
@@ -20,6 +20,18 @@ interface Item {
 
 const categories = ['ELETRONICOS', 'ROUPAS', 'MOVEIS', 'LIVROS', 'UTENSÍLIOS', 'BRINQUEDOS', 'ESPORTES', 'SAUDE', 'OUTROS'];
 
+const UF_LIST = [
+    { uf: 'AC', nome: 'Acre' }, { uf: 'AL', nome: 'Alagoas' }, { uf: 'AP', nome: 'Amapá' },
+    { uf: 'AM', nome: 'Amazonas' }, { uf: 'BA', nome: 'Bahia' }, { uf: 'CE', nome: 'Ceará' },
+    { uf: 'DF', nome: 'Distrito Federal' }, { uf: 'ES', nome: 'Espírito Santo' }, { uf: 'GO', nome: 'Goiás' },
+    { uf: 'MA', nome: 'Maranhão' }, { uf: 'MT', nome: 'Mato Grosso' }, { uf: 'MS', nome: 'Mato Grosso do Sul' },
+    { uf: 'MG', nome: 'Minas Gerais' }, { uf: 'PA', nome: 'Pará' }, { uf: 'PB', nome: 'Paraíba' },
+    { uf: 'PR', nome: 'Paraná' }, { uf: 'PE', nome: 'Pernambuco' }, { uf: 'PI', nome: 'Piauí' },
+    { uf: 'RJ', nome: 'Rio de Janeiro' }, { uf: 'RN', nome: 'Rio Grande do Norte' }, { uf: 'RS', nome: 'Rio Grande do Sul' },
+    { uf: 'RO', nome: 'Rondônia' }, { uf: 'RR', nome: 'Roraima' }, { uf: 'SC', nome: 'Santa Catarina' },
+    { uf: 'SP', nome: 'São Paulo' }, { uf: 'SE', nome: 'Sergipe' }, { uf: 'TO', nome: 'Tocantins' },
+];
+
 const Catalog = () => {
     const [items, setItems] = useState<Item[]>([]);
     const [loading, setLoading] = useState(true);
@@ -27,16 +39,43 @@ const Catalog = () => {
     const [selectedCategory, setSelectedCategory] = useState('');
     const [showFilters, setShowFilters] = useState(false);
 
+    // Filtros geográficos
+    const [selectedState, setSelectedState] = useState('');
+    const [cities, setCities] = useState<string[]>([]);
+    const [selectedCity, setSelectedCity] = useState('');
+    const [loadingCities, setLoadingCities] = useState(false);
+
+    // Ao mudar o Estado, busca cidades na API do IBGE
+    useEffect(() => {
+        if (!selectedState) {
+            setCities([]);
+            setSelectedCity('');
+            return;
+        }
+        setLoadingCities(true);
+        fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${selectedState}/municipios`)
+            .then(r => r.json())
+            .then((data: { nome: string }[]) => {
+                setCities(data.map(m => m.nome));
+                setSelectedCity('');
+            })
+            .catch(() => setCities([]))
+            .finally(() => setLoadingCities(false));
+    }, [selectedState]);
+
+    // Busca inicial ao montar o componente ou ao mudar categoria
     useEffect(() => {
         fetchItems();
-    }, [selectedCategory, searchTerm]);
+    }, [selectedCategory]);
 
     const fetchItems = async () => {
         setLoading(true);
         try {
-            const params: any = {};
-            if (searchTerm) params.search = searchTerm;
+            const params: Record<string, string> = {};
+            if (searchTerm)      params.search   = searchTerm;
             if (selectedCategory) params.category = selectedCategory;
+            if (selectedState)   params.state    = selectedState;
+            if (selectedCity)    params.city     = selectedCity;
 
             const response = await api.get('/items', { params });
             setItems(response.data);
@@ -50,6 +89,17 @@ const Catalog = () => {
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         fetchItems();
+    };
+
+    const hasActiveGeoFilter = !!selectedState || !!selectedCity;
+    const hasAnyFilter = !!selectedCategory || hasActiveGeoFilter || !!searchTerm;
+
+    const clearAllFilters = () => {
+        setSearchTerm('');
+        setSelectedCategory('');
+        setSelectedState('');
+        setSelectedCity('');
+        setCities([]);
     };
 
     return (
@@ -69,57 +119,127 @@ const Catalog = () => {
                         Explore centenas de doações disponíveis em sua região.
                     </p>
 
-                    <div className="bg-white p-2 sm:p-2.5 rounded-lg sm:rounded-2xl shadow-xl flex flex-col sm:flex-row gap-2 animate-scale-in delay-200">
-                        <form onSubmit={handleSearch} className="flex-1 relative">
+                    <form onSubmit={handleSearch} className="bg-white p-2 sm:p-2.5 rounded-lg sm:rounded-2xl shadow-xl flex flex-col sm:flex-row gap-2 animate-scale-in delay-200">
+                        <div className="flex-1 relative">
                             <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 sm:w-5" />
                             <input
                                 type="text"
-                                placeholder="O que você está procurando? (ex: livros, roupas...)"
+                                placeholder="O que você está procurando? (ex: sofá, geladeira...)"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full pl-9 sm:pl-10 md:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 md:py-4 rounded-lg sm:rounded-xl border-none focus:ring-0 outline-none text-gray-700 placeholder-gray-400 text-sm sm:text-base md:text-lg min-h-[44px] sm:min-h-auto touch-manipulation"
                             />
-                        </form>
+                        </div>
                         <button
+                            type="button"
                             onClick={() => setShowFilters(!showFilters)}
-                            className={`px-4 sm:px-6 py-2.5 sm:py-4 rounded-lg sm:rounded-xl font-semibold flex items-center justify-center gap-2 transition-all min-h-[44px] sm:min-h-auto touch-manipulation text-sm sm:text-base ${showFilters || selectedCategory
+                            className={`px-4 sm:px-6 py-2.5 sm:py-4 rounded-lg sm:rounded-xl font-semibold flex items-center justify-center gap-2 transition-all min-h-[44px] sm:min-h-auto touch-manipulation text-sm sm:text-base ${showFilters || hasActiveGeoFilter || selectedCategory
                                 ? 'bg-green-100 text-primary'
                                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                 }`}
                         >
                             <Filter size={18} className="sm:w-5 sm:h-5" />
                             <span className="hidden sm:inline">Filtros</span>
+                            {hasActiveGeoFilter && (
+                                <span className="bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                                    {(selectedState ? 1 : 0) + (selectedCity ? 1 : 0)}
+                                </span>
+                            )}
                         </button>
-                    </div>
+                        <button
+                            type="submit"
+                            className="px-4 sm:px-6 py-2.5 sm:py-4 bg-primary text-white rounded-lg sm:rounded-xl font-semibold hover:bg-green-700 transition-all min-h-[44px] sm:min-h-auto touch-manipulation text-sm sm:text-base"
+                        >
+                            Buscar
+                        </button>
+                    </form>
 
                     {/* Expanded Filters */}
                     {(showFilters || selectedCategory) && (
-                        <div className="mt-3 sm:mt-4 bg-white/10 backdrop-blur-md p-4 sm:p-6 rounded-lg sm:rounded-2xl border border-white/20 animate-fade-in-down text-left">
-                            <div className="flex items-center justify-between mb-3 sm:mb-4">
-                                <span className="font-semibold text-white text-sm sm:text-base">Filtrar por Categoria</span>
-                                {selectedCategory && (
-                                    <button
-                                        onClick={() => setSelectedCategory('')}
-                                        className="text-xs sm:text-sm text-white/80 hover:text-white flex items-center gap-1 bg-white/10 px-2 sm:px-3 py-1 rounded-full transition-colors"
-                                    >
-                                        <X size={14} /> Limpar filtro
-                                    </button>
-                                )}
+                        <div className="mt-3 sm:mt-4 bg-white/10 backdrop-blur-md p-4 sm:p-6 rounded-lg sm:rounded-2xl border border-white/20 animate-fade-in-down text-left space-y-5">
+
+                            {/* Linha 1: Categoria */}
+                            <div>
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="font-semibold text-white text-sm sm:text-base">Categoria</span>
+                                    {selectedCategory && (
+                                        <button
+                                            onClick={() => setSelectedCategory('')}
+                                            className="text-xs sm:text-sm text-white/80 hover:text-white flex items-center gap-1 bg-white/10 px-2 sm:px-3 py-1 rounded-full transition-colors"
+                                        >
+                                            <X size={14} /> Limpar
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {categories.map((cat) => (
+                                        <button
+                                            key={cat}
+                                            onClick={() => setSelectedCategory(selectedCategory === cat ? '' : cat)}
+                                            className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${selectedCategory === cat
+                                                ? 'bg-white text-primary shadow-lg transform scale-105'
+                                                : 'bg-black/20 text-white hover:bg-black/30 border border-white/10'
+                                                }`}
+                                        >
+                                            {cat}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                            <div className="flex flex-wrap gap-3">
-                                {categories.map((cat) => (
-                                    <button
-                                        key={cat}
-                                        onClick={() => setSelectedCategory(selectedCategory === cat ? '' : cat)}
-                                        className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all ${selectedCategory === cat
-                                            ? 'bg-white text-primary shadow-lg transform scale-105'
-                                            : 'bg-black/20 text-white hover:bg-black/30 border border-white/10'
-                                            }`}
-                                    >
-                                        {cat}
-                                    </button>
-                                ))}
+
+                            {/* Linha 2: Localização */}
+                            <div>
+                                <div className="flex items-center gap-2 mb-3">
+                                    <MapPin size={16} className="text-white" />
+                                    <span className="font-semibold text-white text-sm sm:text-base">Localização</span>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {/* Select Estado */}
+                                    <div className="relative">
+                                        <select
+                                            value={selectedState}
+                                            onChange={(e) => setSelectedState(e.target.value)}
+                                            className="w-full appearance-none bg-white/20 text-white border border-white/30 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-white/50 cursor-pointer"
+                                        >
+                                            <option value="" className="text-gray-800">Selecione o Estado</option>
+                                            {UF_LIST.map(({ uf, nome }) => (
+                                                <option key={uf} value={uf} className="text-gray-800">{nome} ({uf})</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-white pointer-events-none" />
+                                    </div>
+
+                                    {/* Select Cidade — apenas habilitado após selecionar Estado */}
+                                    <div className="relative">
+                                        <select
+                                            value={selectedCity}
+                                            onChange={(e) => setSelectedCity(e.target.value)}
+                                            disabled={!selectedState || loadingCities}
+                                            className="w-full appearance-none bg-white/20 text-white border border-white/30 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-white/50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                        >
+                                            <option value="" className="text-gray-800">
+                                                {loadingCities ? 'Carregando cidades...' : !selectedState ? 'Selecione um Estado primeiro' : 'Todas as cidades'}
+                                            </option>
+                                            {cities.map((cidade) => (
+                                                <option key={cidade} value={cidade} className="text-gray-800">{cidade}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-white pointer-events-none" />
+                                    </div>
+                                </div>
                             </div>
+
+                            {/* Limpar todos os filtros */}
+                            {hasAnyFilter && (
+                                <div className="flex justify-end">
+                                    <button
+                                        onClick={clearAllFilters}
+                                        className="text-sm text-white/80 hover:text-white flex items-center gap-1.5 bg-red-500/30 hover:bg-red-500/50 px-4 py-2 rounded-full transition-colors border border-red-400/30"
+                                    >
+                                        <X size={14} /> Limpar todos os filtros
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -144,11 +264,11 @@ const Catalog = () => {
                         </div>
                         <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-2 sm:mb-3 md:mb-4">Nenhum item encontrado</h3>
                         <p className="text-sm sm:text-base text-gray-500 max-w-md mx-auto px-4">
-                            Não encontramos itens com os filtros selecionados. Tente buscar por outros termos ou limpe os filtros.
+                            Não encontramos itens com os filtros selecionados. Tente outros critérios ou limpe os filtros.
                         </p>
-                        {selectedCategory && (
+                        {hasAnyFilter && (
                             <button
-                                onClick={() => setSelectedCategory('')}
+                                onClick={clearAllFilters}
                                 className="mt-6 sm:mt-8 px-6 sm:px-8 py-2.5 sm:py-3 bg-primary text-white rounded-xl font-semibold hover:bg-green-700 transition-colors text-sm sm:text-base min-h-[44px] sm:min-h-auto touch-manipulation"
                             >
                                 Ver todos os itens
