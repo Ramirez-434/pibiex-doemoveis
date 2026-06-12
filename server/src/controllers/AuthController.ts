@@ -77,7 +77,7 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
 
         // Generate token (random string)
         const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-        const expiresAt = new Date(Date.now() + 3600000); // 1 hour
+        const expiresAt = new Date(Date.now() + 15 * 60000); // 15 minutes
 
         await prisma.passwordResetToken.create({
             data: {
@@ -88,7 +88,7 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
         });
 
         // Send Email
-        const baseUrl = process.env.FRONTEND_URL || 'https://doemaisbr.com.br';
+        const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
         const resetLink = `${baseUrl}/redefinir-senha?token=${token}`;
 
         const html = `
