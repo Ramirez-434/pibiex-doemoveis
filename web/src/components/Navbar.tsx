@@ -28,9 +28,7 @@ const Navbar = () => {
             <div className="container mx-auto px-3 sm:px-4">
                 <div className="flex justify-between items-center">
                     <Link to="/" className="flex items-center gap-2 group">
-                        <div className="w-10 h-10 bg-gradient-to-br from-primary to-green-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:scale-110 transition-transform">
-                            D
-                        </div>
+                        <img src="/logo.png" alt="Doe + Brasil Logo" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform" />
                         <span className={`text-2xl font-bold tracking-tight transition-colors ${scrolled || location.pathname !== '/' ? 'text-gray-800' : 'text-green-900'
                             }`}>
                             Doe + Brasil
@@ -38,7 +36,7 @@ const Navbar = () => {
                     </Link>
 
                     {/* Desktop Menu */}
-                    <div className="hidden md:flex items-center gap-6 lg:gap-8">
+                    <div className="hidden lg:flex items-center gap-6 lg:gap-8">
                         <Link to="/" className={`font-medium text-sm lg:text-base hover:text-primary transition-colors ${scrolled || location.pathname !== '/' ? 'text-gray-600' : 'text-green-900 hover:text-green-700'
                             }`}>
                             Início
@@ -87,7 +85,7 @@ const Navbar = () => {
                     {/* Mobile Menu Button */}
                     <button
                         onClick={() => setIsOpen(!isOpen)}
-                        className={`md:hidden p-2 rounded-lg transition-colors ${scrolled || location.pathname !== '/' ? 'text-gray-800' : 'text-green-900'
+                        className={`lg:hidden p-2 rounded-lg transition-colors ${scrolled || location.pathname !== '/' ? 'text-gray-800' : 'text-green-900'
                             }`}
                     >
                         {isOpen ? <X size={24} /> : <Menu size={24} />}
@@ -97,7 +95,7 @@ const Navbar = () => {
 
             {/* Mobile Menu */}
             {isOpen && (
-                <div className="md:hidden absolute top-full left-0 w-full bg-white border-t border-gray-100 shadow-xl animate-fade-in-down z-50">
+                <div className="lg:hidden absolute top-full left-0 w-full bg-white border-t border-gray-100 shadow-xl animate-fade-in-down z-50">
                     <div className="flex flex-col p-3 sm:p-4 space-y-2">
                         <Link to="/" className="px-4 py-3.5 sm:py-4 rounded-2xl hover:bg-gray-50 text-gray-700 font-semibold text-base min-h-[48px] flex items-center touch-manipulation transition-colors">
                             Início
