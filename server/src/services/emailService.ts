@@ -18,10 +18,35 @@ const transporter = nodemailer.createTransport({
 });
 
 export const sendEmail = async (to: string, subject: string, html: string) => {
-    // Modo simulação se não houver credenciais SMTP
+    // 1. Prioridade Máxima: Resend API (Garante 100% de entrega no Gmail, imune a bloqueios de porta)
+    if (process.env.RESEND_API_KEY) {
+        try {
+            const res = await fetch('https://api.resend.com/emails', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${process.env.RESEND_API_KEY}`
+                },
+                body: JSON.stringify({
+                    from: 'DoeBrasil <onboarding@resend.dev>', // Email padrão de testes do Resend
+                    to,
+                    subject,
+                    html
+                })
+            });
+            const data = await res.json();
+            console.log('✅ Resend API Response:', data);
+            return data;
+        } catch (error) {
+            console.error('❌ Resend API Error:', error);
+            throw error;
+        }
+    }
+
+    // 2. Fallback: Modo Simulação se não houver credenciais SMTP
     if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
         console.log('===================================================');
-        console.log('📧 MODO SIMULAÇÃO DE E-MAIL (Sem credenciais SMTP)');
+        console.log('📧 MODO SIMULAÇÃO DE E-MAIL (Sem credenciais SMTP/Resend)');
         console.log(`Para: ${to}`);
         console.log(`Assunto: ${subject}`);
         console.log(`Conteúdo HTML: \n${html}`);
@@ -29,6 +54,7 @@ export const sendEmail = async (to: string, subject: string, html: string) => {
         return { messageId: 'simulated-email-id' };
     }
 
+    // 3. Fallback: Nodemailer SMTP (antigo)
     try {
         const info = await transporter.sendMail({
             from: `"DoeBrasil" <${process.env.SMTP_USER}>`, // sender address
@@ -37,10 +63,10 @@ export const sendEmail = async (to: string, subject: string, html: string) => {
             html, // html body
         });
 
-        console.log('Message sent: %s', info.messageId);
+        console.log('✅ SMTP Message sent: %s', info.messageId);
         return info;
     } catch (error) {
-        console.error('Error sending email:', error);
+        console.error('❌ Error sending SMTP email:', error);
         throw error;
     }
 };
