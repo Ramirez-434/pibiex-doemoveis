@@ -32,9 +32,7 @@ const NewItem = () => {
 
         setUploading(true);
         try {
-            const response = await api.post('/upload', formDataUpload, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            const response = await api.post('/upload', formDataUpload);
 
             setFormData((prev: any) => ({
                 ...prev,

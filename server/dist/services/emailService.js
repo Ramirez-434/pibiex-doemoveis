@@ -17,13 +17,23 @@ const nodemailer_1 = __importDefault(require("nodemailer"));
 const transporter = nodemailer_1.default.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: Number(process.env.SMTP_PORT) || 587,
-    secure: false, // true for 465, false for other ports
+    secure: Number(process.env.SMTP_PORT) === 465, // true for 465, false for other ports
     auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
     },
 });
 const sendEmail = (to, subject, html) => __awaiter(void 0, void 0, void 0, function* () {
+    // Modo simulação se não houver credenciais SMTP
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+        console.log('===================================================');
+        console.log('📧 MODO SIMULAÇÃO DE E-MAIL (Sem credenciais SMTP)');
+        console.log(`Para: ${to}`);
+        console.log(`Assunto: ${subject}`);
+        console.log(`Conteúdo HTML: \n${html}`);
+        console.log('===================================================');
+        return { messageId: 'simulated-email-id' };
+    }
     try {
         const info = yield transporter.sendMail({
             from: `"DoeBrasil" <${process.env.SMTP_USER}>`, // sender address

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { User, Lock, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
 import api from '../services/api';
 import { AxiosError } from 'axios';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -27,6 +28,18 @@ const Login = () => {
             setError(error.response?.data?.error || 'Falha no login. Verifique suas credenciais.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleGoogleSuccess = async (credentialResponse: any) => {
+        try {
+            const response = await api.post('/auth/google', { token: credentialResponse.credential });
+            localStorage.setItem('token', response.data.token);
+            localStorage.setItem('user', JSON.stringify(response.data.user));
+            navigate('/painel');
+        } catch (err) {
+            const error = err as AxiosError<{ error: string }>;
+            setError(error.response?.data?.error || 'Falha ao autenticar com o Google.');
         }
     };
 
@@ -132,6 +145,29 @@ const Login = () => {
                                 )}
                             </button>
                         </form>
+
+                        <div className="mt-6">
+                            <div className="relative">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-gray-200"></div>
+                                </div>
+                                <div className="relative flex justify-center text-sm">
+                                    <span className="px-2 bg-white text-gray-500">Ou continue com</span>
+                                </div>
+                            </div>
+
+                            <div className="mt-6 flex justify-center">
+                                <GoogleLogin
+                                    onSuccess={handleGoogleSuccess}
+                                    onError={() => {
+                                        setError('Login com Google falhou ou foi cancelado.');
+                                    }}
+                                    theme="outline"
+                                    size="large"
+                                    width="100%"
+                                />
+                            </div>
+                        </div>
 
                         <div className="mt-8 text-center">
                             <p className="text-gray-600">

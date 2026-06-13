@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, MapPin, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
 import api from '../services/api';
 import { AxiosError } from 'axios';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -42,6 +43,18 @@ const Register = () => {
             setError(error.response?.data?.error || 'Falha ao criar conta. Tente novamente.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleGoogleSuccess = async (credentialResponse: any) => {
+        try {
+            const response = await api.post('/auth/google', { token: credentialResponse.credential });
+            localStorage.setItem('token', response.data.token);
+            localStorage.setItem('user', JSON.stringify(response.data.user));
+            navigate('/painel');
+        } catch (err) {
+            const error = err as AxiosError<{ error: string }>;
+            setError(error.response?.data?.error || 'Falha ao se cadastrar com o Google.');
         }
     };
 
@@ -235,6 +248,29 @@ const Register = () => {
                                 )}
                             </button>
                         </form>
+
+                        <div className="mt-6">
+                            <div className="relative">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-gray-200"></div>
+                                </div>
+                                <div className="relative flex justify-center text-sm">
+                                    <span className="px-2 bg-white text-gray-500">Ou cadastre-se com</span>
+                                </div>
+                            </div>
+
+                            <div className="mt-6 flex justify-center">
+                                <GoogleLogin
+                                    onSuccess={handleGoogleSuccess}
+                                    onError={() => {
+                                        setError('Cadastro com Google falhou ou foi cancelado.');
+                                    }}
+                                    theme="outline"
+                                    size="large"
+                                    width="100%"
+                                />
+                            </div>
+                        </div>
 
                         <div className="mt-8 text-center">
                             <p className="text-gray-600">

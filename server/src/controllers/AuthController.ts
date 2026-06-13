@@ -4,6 +4,9 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../server';
 import { sendEmail } from '../services/emailService';
 import { AuthRequest } from '../middleware/authMiddleware';
+import { OAuth2Client } from 'google-auth-library';
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const SECRET_KEY = process.env.JWT_SECRET || 'supersecretkey';
 
@@ -13,6 +16,10 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) {
+            if (existingUser.authProvider === 'GOOGLE') {
+                res.status(400).json({ error: 'Esta conta foi criada com o Google. Por favor, utilize o botão Continuar com o Google.' });
+                return;
+            }
             res.status(400).json({ error: 'User already exists' });
             return;
         }
@@ -37,6 +44,71 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
+export const googleLogin = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { token } = req.body;
+        
+        // Verifica a assinatura e expiração do token diretamente com o Google
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        
+        const payload = ticket.getPayload();
+        if (!payload || !payload.email) {
+            res.status(400).json({ error: 'Token Google inválido.' });
+            return;
+        }
+
+        const email = payload.email;
+        const name = payload.name || 'Usuário Google';
+        const providerId = payload.sub; // ID único do Google
+        const avatar = payload.picture;
+
+        // Procura se o e-mail já existe
+        let user = await prisma.user.findUnique({ where: { email } });
+
+        if (!user) {
+            // Se não existe, cria a conta blindada para o Google
+            user = await prisma.user.create({
+                data: {
+                    email,
+                    name,
+                    avatar,
+                    authProvider: 'GOOGLE',
+                    providerId,
+                    password_hash: null, // Sem senha local
+                }
+            });
+        } else {
+            // Se já existe e foi criado localmente no passado (sem provedor),
+            // a melhor prática de UX é atrelar a conta Google à conta existente
+            if (user.authProvider === 'LOCAL' && !user.providerId) {
+                user = await prisma.user.update({
+                    where: { email },
+                    data: {
+                        authProvider: 'GOOGLE',
+                        providerId,
+                        // Mantém a senha para permitir login misto caso deseje no futuro
+                    }
+                });
+            }
+        }
+
+        // Gera o nosso próprio JWT da aplicação para manter a sessão
+        const appToken = jwt.sign({ userId: user.id, email: user.email, role: user.role }, SECRET_KEY, {
+            expiresIn: '7d',
+        });
+
+        res.json({ token: appToken, user: { id: user.id, name: user.name, email: user.email, role: user.role, city: user.city, state: user.state, avatar: user.avatar } });
+
+    } catch (error: any) {
+        console.error('Google Auth Error:', error);
+        res.status(401).json({ error: 'Falha na autenticação com o Google.' });
+    }
+};
+
+
 export const login = async (req: Request, res: Response): Promise<void> => {
     try {
         const { email, password } = req.body;
@@ -45,6 +117,17 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         if (!user) {
             res.status(401).json({ error: 'Invalid credentials' });
             return;
+        }
+
+        if (user.authProvider === 'GOOGLE') {
+            res.status(400).json({ error: 'Esta conta foi criada com o Google. Por favor, utilize o botão Continuar com o Google.' });
+            return;
+        }
+
+        // TypeScript now requires us to handle null password_hash, though for LOCAL users it shouldn't be null
+        if (!user.password_hash) {
+             res.status(401).json({ error: 'Invalid credentials' });
+             return;
         }
 
         const isValid = await bcrypt.compare(password, user.password_hash);

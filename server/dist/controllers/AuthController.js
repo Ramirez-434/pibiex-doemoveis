@@ -58,10 +58,10 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             res.status(401).json({ error: 'Invalid credentials' });
             return;
         }
-        const token = jsonwebtoken_1.default.sign({ userId: user.id, email: user.email }, SECRET_KEY, {
+        const token = jsonwebtoken_1.default.sign({ userId: user.id, email: user.email, role: user.role }, SECRET_KEY, {
             expiresIn: '7d',
         });
-        res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
+        res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role, city: user.city, state: user.state, avatar: user.avatar } });
     }
     catch (error) {
         console.error(error);
@@ -80,7 +80,7 @@ const forgotPassword = (req, res) => __awaiter(void 0, void 0, void 0, function*
         }
         // Generate token (random string)
         const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-        const expiresAt = new Date(Date.now() + 3600000); // 1 hour
+        const expiresAt = new Date(Date.now() + 15 * 60000); // 15 minutes
         yield server_1.prisma.passwordResetToken.create({
             data: {
                 token,
@@ -89,7 +89,8 @@ const forgotPassword = (req, res) => __awaiter(void 0, void 0, void 0, function*
             },
         });
         // Send Email
-        const resetLink = `http://localhost:5173/redefinir-senha?token=${token}`;
+        const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const resetLink = `${baseUrl}/redefinir-senha?token=${token}`;
         const html = `
             <div style="font-family: sans-serif; padding: 20px;">
                 <h2>Recuperação de Senha</h2>

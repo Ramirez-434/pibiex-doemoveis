@@ -14,25 +14,40 @@ const server_1 = require("../server");
 const types_1 = require("../types");
 const getItems = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { featured, limit, category, donorId, search } = req.query;
+        const { featured, limit, category, donorId } = req.query;
+        // Helper: previne arrays no req.query (?state=SP&state=RJ => ['SP','RJ'])
+        const safeParam = (p) => Array.isArray(p) ? String(p[0]) : p ? String(p) : undefined;
+        const search = safeParam(req.query.search);
+        const state = safeParam(req.query.state);
+        const city = safeParam(req.query.city);
         const where = {
             status: types_1.ItemStatus.AVAILABLE,
+            deletedAt: null,
         };
         if (category) {
-            where.category = category;
+            where.category = safeParam(category);
         }
         if (req.query.condition) {
-            where.condition = req.query.condition;
+            where.condition = safeParam(req.query.condition);
         }
         if (donorId) {
-            where.donorId = String(donorId);
+            where.donorId = safeParam(donorId);
             delete where.status;
         }
+        // Busca insensitive — suportado pelo PostgreSQL/Neon
         if (search) {
             where.OR = [
-                { title: { contains: String(search) } }, // SQLite doesn't support mode: 'insensitive' easily without extension, removing it for now
-                { description: { contains: String(search) } },
+                { title: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } },
             ];
+        }
+        // Filtro geográfico — spread preserva filtros existentes no donor
+        if (state || city) {
+            where.donor = Object.assign({}, where.donor);
+            if (state)
+                where.donor.state = state;
+            if (city)
+                where.donor.city = { contains: city, mode: 'insensitive' };
         }
         const items = yield server_1.prisma.item.findMany({
             where,

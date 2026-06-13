@@ -29,9 +29,7 @@ const path_1 = __importDefault(require("path"));
 const http_1 = __importDefault(require("http"));
 const socket_io_1 = require("socket.io");
 const app = (0, express_1.default)();
-const prismaClient = new client_1.PrismaClient({
-    datasourceUrl: "mysql://marqu668_marques:marques4312@localhost:3306/marqu668_doemaisbr"
-});
+const prismaClient = new client_1.PrismaClient();
 const prisma = prismaClient.$extends({
     query: {
         user: {
