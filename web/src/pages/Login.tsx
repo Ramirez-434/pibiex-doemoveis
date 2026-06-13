@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Lock, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
 import api from '../services/api';
+import { AxiosError } from 'axios';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -21,8 +22,9 @@ const Login = () => {
             localStorage.setItem('token', response.data.token);
             localStorage.setItem('user', JSON.stringify(response.data.user));
             navigate('/painel');
-        } catch (err: any) {
-            setError(err.response?.data?.error || 'Falha no login. Verifique suas credenciais.');
+        } catch (err) {
+            const error = err as AxiosError<{ error: string }>;
+            setError(error.response?.data?.error || 'Falha no login. Verifique suas credenciais.');
         } finally {
             setLoading(false);
         }
@@ -35,7 +37,7 @@ const Login = () => {
                 <div className="md:w-1/2 bg-primary p-12 text-white flex flex-col justify-between relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-green-600 to-green-900 opacity-90 z-0 animate-gradient"></div>
                     {/* Decorative Blobs */}
-                    <div className="absolute -top-24 -left-24 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl animate-pulse"></div>
+                    <div className="absolute -top-24 -left-24 w-80 h-80 bg-green-400 opacity-20 rounded-full blur-3xl animate-pulse"></div>
                     <div className="absolute bottom-0 right-0 w-96 h-96 bg-yellow-400 opacity-20 rounded-full blur-3xl"></div>
 
                     <div className="relative z-10 animate-fade-in-down">

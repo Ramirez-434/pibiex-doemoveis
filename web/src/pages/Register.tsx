@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, MapPin, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
 import api from '../services/api';
+import { AxiosError } from 'axios';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -36,8 +37,9 @@ const Register = () => {
         try {
             await api.post('/auth/register', formData);
             navigate('/login');
-        } catch (err: any) {
-            setError(err.response?.data?.error || 'Falha ao criar conta. Tente novamente.');
+        } catch (err) {
+            const error = err as AxiosError<{ error: string }>;
+            setError(error.response?.data?.error || 'Falha ao criar conta. Tente novamente.');
         } finally {
             setLoading(false);
         }
@@ -49,7 +51,7 @@ const Register = () => {
                 {/* Right Side - Image/Branding */}
                 <div className="md:w-5/12 bg-secondary p-10 md:p-12 text-white flex flex-col justify-between relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-orange-500 to-orange-800 opacity-90 z-0 animate-gradient"></div>
-                    <div className="absolute -bottom-24 -right-24 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl animate-pulse"></div>
+                    <div className="absolute -bottom-24 -right-24 w-80 h-80 bg-green-400 opacity-20 rounded-full blur-3xl animate-pulse"></div>
                     <div className="absolute top-0 left-0 w-96 h-96 bg-yellow-300 opacity-20 rounded-full blur-3xl"></div>
 
                     <div className="relative z-10 text-right animate-fade-in-down">
