@@ -28,7 +28,7 @@ const Navbar = () => {
             <div className="container mx-auto px-3 sm:px-4">
                 <div className="flex justify-between items-center">
                     <Link to="/" className="flex items-center gap-2 group">
-                        <img src="/logo.png" alt="Doe + Brasil Logo" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform" />
+                        <img src="/logo.png" alt="Doe + Brasil Logo" className="w-14 h-14 sm:w-16 sm:h-16 object-contain group-hover:scale-110 transition-transform" />
                         <span className={`text-2xl font-bold tracking-tight transition-colors ${scrolled || location.pathname !== '/' ? 'text-gray-800' : 'text-green-900'
                             }`}>
                             Doe + Brasil
