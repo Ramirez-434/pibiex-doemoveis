@@ -263,7 +263,7 @@ const Register = () => {
                                 <GoogleLogin
                                     onSuccess={handleGoogleSuccess}
                                     onError={() => {
-                                        setError('Cadastro com Google falhou ou foi cancelado.');
+                                        setError('Não foi possível carregar o cadastro do Google. Desative seu bloqueador de anúncios ou utilize o formulário.');
                                     }}
                                     theme="outline"
                                     size="large"

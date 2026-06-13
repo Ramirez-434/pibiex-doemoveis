@@ -160,7 +160,7 @@ const Login = () => {
                                 <GoogleLogin
                                     onSuccess={handleGoogleSuccess}
                                     onError={() => {
-                                        setError('Login com Google falhou ou foi cancelado.');
+                                        setError('Não foi possível carregar o login do Google. Desative seu bloqueador de anúncios ou utilize e-mail e senha.');
                                     }}
                                     theme="outline"
                                     size="large"
