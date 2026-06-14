@@ -100,7 +100,7 @@ const Register = () => {
         setLoading(true);
 
         try {
-            await api.post('/auth/register', {
+            const response = await api.post('/auth/register', {
                 name: formData.name,
                 email: formData.email,
                 password: formData.password,
@@ -108,7 +108,13 @@ const Register = () => {
                 state: formData.state,
                 turnstileToken,
             });
-            navigate('/login');
+            
+            // Auto-login
+            localStorage.setItem('token', response.data.token);
+            localStorage.setItem('user', JSON.stringify(response.data.user));
+            
+            const firstName = response.data.user.name.split(' ')[0];
+            navigate('/', { state: { welcomeMessage: `Bem-vindo(a), ${firstName}! Sua conta foi criada com sucesso.` } });
         } catch (err) {
             const error = err as AxiosError<{ error: string }>;
             setError(error.response?.data?.error || 'Falha ao criar conta. Tente novamente.');

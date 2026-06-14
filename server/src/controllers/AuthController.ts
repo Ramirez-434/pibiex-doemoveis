@@ -63,7 +63,15 @@ export const register = async (req: Request, res: Response): Promise<void> => {
             },
         });
 
-        res.status(201).json({ message: 'User created successfully', userId: user.id });
+        const token = jwt.sign({ userId: user.id, email: user.email, role: user.role }, SECRET_KEY, {
+            expiresIn: '7d',
+        });
+
+        res.status(201).json({ 
+            message: 'User created successfully', 
+            token, 
+            user: { id: user.id, name: user.name, email: user.email, role: user.role, city: user.city, state: user.state, avatar: user.avatar } 
+        });
     } catch (error: any) {
         console.error(error);
         res.status(500).json({ error: error.message || 'Internal server error' });

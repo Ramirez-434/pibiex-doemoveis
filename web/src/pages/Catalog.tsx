@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Search, Filter, X, Package, MapPin, ChevronDown } from 'lucide-react';
 import api from '../services/api';
 import ItemCard from '../components/ItemCard';
@@ -39,6 +40,10 @@ const Catalog = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
     const [showFilters, setShowFilters] = useState(false);
+    
+    // Boas vindas do Auto-login
+    const location = useLocation();
+    const [welcomeMsg, setWelcomeMsg] = useState((location.state as any)?.welcomeMessage || '');
 
     // Filtros geográficos
     const [selectedState, setSelectedState] = useState('');
@@ -110,6 +115,15 @@ const Catalog = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 font-sans pt-24">
+            {/* Toast de Boas Vindas */}
+            {welcomeMsg && (
+                <Toast
+                    message={welcomeMsg}
+                    type="success"
+                    onClose={() => setWelcomeMsg('')}
+                    duration={6000}
+                />
+            )}
             {/* Toast de erro da API do IBGE — visível ao usuário */}
             {ibgeError && (
                 <Toast
