@@ -234,6 +234,7 @@ const Register = () => {
                                         {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                     </button>
                                 </div>
+                                {fieldErrors.password && <span className="text-red-500 text-xs ml-2 mt-1 block error-text">{fieldErrors.password}</span>}
                             </div>
 
                             <div className="group">
