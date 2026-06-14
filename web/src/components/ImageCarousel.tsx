@@ -151,7 +151,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ isOpen, onClos
         {/* Content */}
         <div className="max-h-[60vh] overflow-y-auto p-4 sm:p-6 space-y-6">
           {item?.images && (
-            <ImageCarousel images={JSON.parse(item.images)} title={item.title} />
+            <ImageCarousel images={Array.isArray(item.images) ? item.images : (typeof item.images === 'string' && item.images !== 'undefined' ? JSON.parse(item.images) : [])} title={item.title} />
           )}
 
           <div className="space-y-4">

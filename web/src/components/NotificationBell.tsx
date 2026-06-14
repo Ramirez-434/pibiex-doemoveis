@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Bell } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
 interface Notification {
@@ -15,6 +16,7 @@ const NotificationBell = () => {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isOpen, setIsOpen] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchNotifications();
@@ -39,6 +41,22 @@ const NotificationBell = () => {
             setUnreadCount(prev => Math.max(0, prev - 1));
         } catch (error) {
             console.error('Error marking as read:', error);
+        }
+    };
+
+    const handleNotificationClick = async (notification: Notification) => {
+        if (!notification.read) {
+            await markAsRead(notification.id);
+        }
+        setIsOpen(false);
+        
+        const titleLower = notification.title.toLowerCase();
+        if (titleLower.includes('mensagem')) {
+            navigate('/painel/chat');
+        } else if (titleLower.includes('solicitação') || titleLower.includes('solicitacao')) {
+            navigate('/painel/minhas-doacoes');
+        } else {
+            navigate('/painel');
         }
     };
 
@@ -78,7 +96,7 @@ const NotificationBell = () => {
                                         key={notification.id}
                                         className={`p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer ${!notification.read ? 'bg-green-50/50' : ''
                                             }`}
-                                        onClick={() => markAsRead(notification.id)}
+                                        onClick={() => handleNotificationClick(notification)}
                                     >
                                         <div className="flex justify-between items-start mb-1">
                                             <h4 className={`text-sm ${!notification.read ? 'font-bold text-gray-800' : 'font-medium text-gray-600'}`}>
