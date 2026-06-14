@@ -98,6 +98,29 @@ const Register = () => {
                             </div>
                         )}
 
+                        <div className="mb-6 flex justify-center">
+                            <GoogleLogin
+                                onSuccess={handleGoogleSuccess}
+                                onError={() => {
+                                    setError('Não foi possível carregar o cadastro do Google. Desative seu bloqueador de anúncios ou utilize o formulário.');
+                                }}
+                                theme="outline"
+                                size="large"
+                                width="100%"
+                            />
+                        </div>
+
+                        <div className="mb-6">
+                            <div className="relative">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-gray-200"></div>
+                                </div>
+                                <div className="relative flex justify-center text-sm">
+                                    <span className="px-2 bg-white text-gray-500">Ou cadastre-se com e-mail</span>
+                                </div>
+                            </div>
+                        </div>
+
                         <form onSubmit={handleSubmit} className="space-y-5">
                             <div className="group">
                                 <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">Nome Completo</label>
@@ -248,29 +271,6 @@ const Register = () => {
                                 )}
                             </button>
                         </form>
-
-                        <div className="mt-6">
-                            <div className="relative">
-                                <div className="absolute inset-0 flex items-center">
-                                    <div className="w-full border-t border-gray-200"></div>
-                                </div>
-                                <div className="relative flex justify-center text-sm">
-                                    <span className="px-2 bg-white text-gray-500">Ou cadastre-se com</span>
-                                </div>
-                            </div>
-
-                            <div className="mt-6 flex justify-center">
-                                <GoogleLogin
-                                    onSuccess={handleGoogleSuccess}
-                                    onError={() => {
-                                        setError('Não foi possível carregar o cadastro do Google. Desative seu bloqueador de anúncios ou utilize o formulário.');
-                                    }}
-                                    theme="outline"
-                                    size="large"
-                                    width="100%"
-                                />
-                            </div>
-                        </div>
 
                         <div className="mt-8 text-center">
                             <p className="text-gray-600">
