@@ -15,6 +15,7 @@ import http from 'http';
 import { Server } from 'socket.io';
 
 const app = express();
+app.set('trust proxy', 1); // Confia no proxy da Render para pegar o IP real do cliente
 const prismaClient = new PrismaClient();
 
 const prisma = prismaClient.$extends({

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import axios from 'axios';
 import { prisma } from '../server';
 import { sendEmail } from '../services/emailService';
 import { AuthRequest } from '../middleware/authMiddleware';
@@ -9,10 +10,35 @@ import { OAuth2Client } from 'google-auth-library';
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const SECRET_KEY = process.env.JWT_SECRET || 'supersecretkey';
+const TURNSTILE_SECRET_KEY = process.env.TURNSTILE_SECRET_KEY || '1x0000000000000000000000000000000AA';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { name, email, password, phone, city, state } = req.body;
+        const { name, email, password, phone, city, state, turnstileToken } = req.body;
+
+        if (!turnstileToken) {
+            res.status(400).json({ error: 'Validação de segurança (Turnstile) falhou. Atualize a página e tente novamente.' });
+            return;
+        }
+
+        if (TURNSTILE_SECRET_KEY === '1x0000000000000000000000000000000AA') {
+            console.warn('⚠️ ALERTA: Turnstile rodando em modo de teste! Substitua no .env em produção.');
+        }
+
+        const formData = new URLSearchParams();
+        formData.append('secret', TURNSTILE_SECRET_KEY);
+        formData.append('response', turnstileToken);
+
+        const turnstileRes = await axios.post('https://challenges.cloudflare.com/turnstile/v0/siteverify', formData, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+        });
+
+        if (!turnstileRes.data.success) {
+            res.status(400).json({ error: 'Validação de segurança rejeitada. Tente novamente.' });
+            return;
+        }
 
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) {

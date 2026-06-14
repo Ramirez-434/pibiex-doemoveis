@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, MapPin, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
 import api from '../services/api';
-import { AxiosError } from 'axios';
+import axios, { AxiosError } from 'axios';
 import { GoogleLogin } from '@react-oauth/google';
+import { Turnstile } from '@marsidev/react-turnstile';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -12,31 +13,87 @@ const Register = () => {
         email: '',
         password: '',
         confirmPassword: '',
+        cep: '',
         city: '',
-        state: ''
+        state: '',
+        consentLGPD: false,
     });
     const [error, setError] = useState('');
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [turnstileToken, setTurnstileToken] = useState('');
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+        setFormData({ ...formData, [e.target.name]: value });
+        if (fieldErrors[e.target.name]) {
+            setFieldErrors({ ...fieldErrors, [e.target.name]: '' });
+        }
+    };
+
+    const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const rawCep = e.target.value;
+        setFormData({ ...formData, cep: rawCep });
+        if (fieldErrors.cep) setFieldErrors({ ...fieldErrors, cep: '' });
+
+        const cleanCep = rawCep.replace(/\D/g, '');
+        if (cleanCep.length === 8) {
+            try {
+                const response = await axios.get(`https://viacep.com.br/ws/${cleanCep}/json/`, { timeout: 3000 });
+                if (response.data && !response.data.erro) {
+                    setFormData(prev => ({
+                        ...prev,
+                        city: response.data.localidade,
+                        state: response.data.uf
+                    }));
+                } else {
+                    setError('CEP não encontrado. Preencha manualmente.');
+                }
+            } catch (err) {
+                setError('Não foi possível buscar o CEP. Preencha manualmente.');
+            }
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setFieldErrors({});
+
+        let newErrors: Record<string, string> = {};
+
+        if (!formData.name) newErrors.name = 'Nome é obrigatório';
+        if (!formData.email) newErrors.email = 'E-mail é obrigatório';
+        if (!formData.password) newErrors.password = 'Senha é obrigatória';
+        if (formData.password.length > 0 && formData.password.length < 6) newErrors.password = 'A senha deve ter pelo menos 6 caracteres';
+        if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'As senhas não coincidem.';
+        if (!formData.consentLGPD) newErrors.consentLGPD = 'Você precisa aceitar a Política de Privacidade.';
         
-        if (formData.password !== formData.confirmPassword) {
-            setError('As senhas não coincidem. Tente novamente.');
+        if (!turnstileToken) {
+            setError('Por favor, aguarde a verificação de segurança (Turnstile) ou desative seu bloqueador de anúncios.');
+            return;
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setFieldErrors(newErrors);
+            const firstErrorNode = document.querySelector('.error-text');
+            if (firstErrorNode) firstErrorNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
         }
 
         setLoading(true);
 
         try {
-            await api.post('/auth/register', formData);
+            await api.post('/auth/register', {
+                name: formData.name,
+                email: formData.email,
+                password: formData.password,
+                city: formData.city,
+                state: formData.state,
+                turnstileToken,
+            });
             navigate('/login');
         } catch (err) {
             const error = err as AxiosError<{ error: string }>;
@@ -117,11 +174,10 @@ const Register = () => {
                                 </div>
                                 <div className="relative flex justify-center text-sm">
                                     <span className="px-2 bg-white text-gray-500">Ou cadastre-se com e-mail</span>
-                                </div>
-                            </div>
+                                                            </div>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-5">
+                        <form onSubmit={handleSubmit} className="space-y-5" noValidate>
                             <div className="group">
                                 <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">Nome Completo</label>
                                 <div className="relative transition-all duration-300 focus-within:transform focus-within:-translate-y-1">
@@ -131,11 +187,12 @@ const Register = () => {
                                         name="name"
                                         value={formData.name}
                                         onChange={handleChange}
-                                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all font-medium text-gray-700 placeholder-gray-400"
+                                        autoComplete="name"
+                                        className={`w-full pl-12 pr-4 py-3.5 bg-gray-50 border ${fieldErrors.name ? 'border-red-500' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all font-medium text-gray-700 placeholder-gray-400`}
                                         placeholder="Seu nome"
-                                        required
                                     />
                                 </div>
+                                {fieldErrors.name && <span className="text-red-500 text-xs ml-2 mt-1 block error-text">{fieldErrors.name}</span>}
                             </div>
 
                             <div className="group">
@@ -147,11 +204,12 @@ const Register = () => {
                                         name="email"
                                         value={formData.email}
                                         onChange={handleChange}
-                                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all font-medium text-gray-700 placeholder-gray-400"
+                                        autoComplete="email"
+                                        className={`w-full pl-12 pr-4 py-3.5 bg-gray-50 border ${fieldErrors.email ? 'border-red-500' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all font-medium text-gray-700 placeholder-gray-400`}
                                         placeholder="seu@email.com"
-                                        required
                                     />
                                 </div>
+                                {fieldErrors.email && <span className="text-red-500 text-xs ml-2 mt-1 block error-text">{fieldErrors.email}</span>}
                             </div>
 
                             <div className="group">
@@ -163,10 +221,10 @@ const Register = () => {
                                         name="password"
                                         value={formData.password}
                                         onChange={handleChange}
-                                        className="w-full pl-12 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all font-medium text-gray-700 placeholder-gray-400"
-                                        placeholder="••••••••"
-                                        required
-                                    />
+                                        autoComplete="new-password"
+                                        className={`w-full pl-12 pr-12 py-3.5 bg-gray-50 border ${fieldErrors.password ? 'border-red-500' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all font-medium text-gray-700 placeholder-gray-400`}
+                                        placeholder="••••••"
+                                    />                      />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
@@ -186,9 +244,9 @@ const Register = () => {
                                         name="confirmPassword"
                                         value={formData.confirmPassword}
                                         onChange={handleChange}
-                                        className="w-full pl-12 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all font-medium text-gray-700 placeholder-gray-400"
-                                        placeholder="••••••••"
-                                        required
+                                        autoComplete="new-password"
+                                        className={`w-full pl-12 pr-12 py-3.5 bg-gray-50 border ${fieldErrors.confirmPassword ? 'border-red-500' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all font-medium text-gray-700 placeholder-gray-400`}
+                                        placeholder="••••••"
                                     />
                                     <button
                                         type="button"
@@ -198,6 +256,25 @@ const Register = () => {
                                         {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                     </button>
                                 </div>
+                                {fieldErrors.confirmPassword && <span className="text-red-500 text-xs ml-2 mt-1 block error-text">{fieldErrors.confirmPassword}</span>}
+                            </div>
+
+                            <div className="group">
+                                <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">CEP (Busca automática)</label>
+                                <div className="relative transition-all duration-300 focus-within:transform focus-within:-translate-y-1">
+                                    <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-secondary transition-colors" size={20} />
+                                    <input
+                                        type="text"
+                                        name="cep"
+                                        value={formData.cep}
+                                        onChange={handleCepChange}
+                                        autoComplete="postal-code"
+                                        maxLength={9}
+                                        className={`w-full pl-12 pr-4 py-3.5 bg-gray-50 border ${fieldErrors.cep ? 'border-red-500' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all font-medium text-gray-700 placeholder-gray-400`}
+                                        placeholder="XXXXX-XXX"
+                                    />
+                                </div>
+                                {fieldErrors.cep && <span className="text-red-500 text-xs ml-2 mt-1 block error-text">{fieldErrors.cep}</span>}
                             </div>
 
                             <div className="grid grid-cols-2 gap-5">
@@ -210,11 +287,12 @@ const Register = () => {
                                             name="city"
                                             value={formData.city}
                                             onChange={handleChange}
-                                            className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all font-medium text-gray-700 placeholder-gray-400"
+                                            autoComplete="address-level2"
+                                            className={`w-full pl-12 pr-4 py-3.5 bg-gray-50 border ${fieldErrors.city ? 'border-red-500' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all font-medium text-gray-700 placeholder-gray-400`}
                                             placeholder="Cidade"
-                                            required
                                         />
                                     </div>
+                                    {fieldErrors.city && <span className="text-red-500 text-xs ml-2 mt-1 block error-text">{fieldErrors.city}</span>}
                                 </div>
                                 <div className="group">
                                     <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">Estado</label>
@@ -225,33 +303,46 @@ const Register = () => {
                                             name="state"
                                             value={formData.state}
                                             onChange={handleChange}
-                                            className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all font-medium text-gray-700 placeholder-gray-400"
+                                            autoComplete="address-level1"
+                                            className={`w-full pl-12 pr-4 py-3.5 bg-gray-50 border ${fieldErrors.state ? 'border-red-500' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all font-medium text-gray-700 placeholder-gray-400`}
                                             placeholder="UF"
                                             maxLength={2}
-                                            required
                                         />
                                     </div>
+                                    {fieldErrors.state && <span className="text-red-500 text-xs ml-2 mt-1 block error-text">{fieldErrors.state}</span>}
                                 </div>
                             </div>
 
                             <div className="flex items-start mt-4">
                                 <div className="flex items-center h-5">
                                     <input
-                                        id="terms"
-                                        name="terms"
+                                        id="consentLGPD"
+                                        name="consentLGPD"
                                         type="checkbox"
-                                        required
+                                        checked={formData.consentLGPD}
+                                        onChange={handleChange}
                                         className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-secondary/30 cursor-pointer accent-secondary"
                                     />
                                 </div>
                                 <div className="ml-3 text-sm">
-                                    <label htmlFor="terms" className="font-semibold text-gray-700 cursor-pointer">
+                                    <label htmlFor="consentLGPD" className="font-semibold text-gray-700 cursor-pointer">
                                         Consentimento LGPD
                                     </label>
                                     <p className="text-gray-500 text-xs mt-1">
-                                        Li e aceito os <Link to="/termos" className="text-secondary hover:underline" target="_blank">Termos de Uso</Link> e a <Link to="/privacidade" className="text-secondary hover:underline" target="_blank">Política de Privacidade</Link>, e consinto livremente com o tratamento dos meus dados pessoais (Nome, Email e Endereço) para fins de funcionamento da plataforma, conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).
+                                        Li e aceito os <Link to="/termos" className="text-secondary hover:underline" target="_blank">Termos de Uso</Link> e a <Link to="/privacidade" className="text-secondary hover:underline" target="_blank">Política de Privacidade</Link>, e consinto livremente com o tratamento dos meus dados pessoais para fins de funcionamento da plataforma.
                                     </p>
+                                    {fieldErrors.consentLGPD && <span className="text-red-500 text-xs mt-1 block error-text">{fieldErrors.consentLGPD}</span>}
                                 </div>
+                            </div>
+
+                            <div className="mt-6 flex justify-center">
+                                <Turnstile
+                                    siteKey="1x00000000000000000000AA"
+                                    onSuccess={(token) => setTurnstileToken(token)}
+                                    onError={() => setError('Falha no sistema antibot. Por favor, desative seu bloqueador de anúncios.')}
+                                    onExpire={() => setTurnstileToken('')}
+                                    options={{ theme: 'light' }}
+                                />
                             </div>
 
                             <button
