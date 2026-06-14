@@ -174,7 +174,8 @@ const Register = () => {
                                 </div>
                                 <div className="relative flex justify-center text-sm">
                                     <span className="px-2 bg-white text-gray-500">Ou cadastre-se com e-mail</span>
-                                                            </div>
+                                </div>
+                            </div>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-5" noValidate>
@@ -224,7 +225,7 @@ const Register = () => {
                                         autoComplete="new-password"
                                         className={`w-full pl-12 pr-12 py-3.5 bg-gray-50 border ${fieldErrors.password ? 'border-red-500' : 'border-gray-200'} rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all font-medium text-gray-700 placeholder-gray-400`}
                                         placeholder="••••••"
-                                    />                      />
+                                    />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
