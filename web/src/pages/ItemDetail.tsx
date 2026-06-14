@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { MapPin, AlertCircle, ArrowLeft, Calendar, Share2, Heart } from 'lucide-react';
+import { MapPin, AlertCircle, ArrowLeft, Calendar, Share2, Heart, CheckCircle2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import api from '../services/api';
 
@@ -27,6 +27,7 @@ const ItemDetail = () => {
     const [item, setItem] = useState<Item | null>(null);
     const [loading, setLoading] = useState(true);
     const [requesting, setRequesting] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [activeImage, setActiveImage] = useState(0);
     const user = JSON.parse(localStorage.getItem('user') || 'null');
 
@@ -64,8 +65,7 @@ const ItemDetail = () => {
             });
 
             setTimeout(() => {
-                alert('Solicitação enviada com sucesso! Aguarde o contato do doador.');
-                navigate('/painel/solicitacoes');
+                setShowSuccessModal(true);
             }, 1000);
 
         } catch (error: any) {
@@ -209,6 +209,30 @@ const ItemDetail = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Modal de Sucesso */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center animate-scale-in">
+                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                            <CheckCircle2 size={40} className="text-green-600 animate-pulse" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-800 mb-3 tracking-tight">Pedido Enviado!</h3>
+                        <p className="text-gray-600 mb-8 leading-relaxed">
+                            Sua solicitação foi enviada com sucesso ao doador. Agora é só aguardar o contato para combinar a retirada.
+                        </p>
+                        <button 
+                            onClick={() => {
+                                setShowSuccessModal(false);
+                                navigate('/painel/solicitacoes');
+                            }}
+                            className="w-full py-4 bg-primary text-white rounded-xl font-bold hover:bg-green-700 transition-colors shadow-lg shadow-green-200"
+                        >
+                            Ver Minhas Solicitações
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
