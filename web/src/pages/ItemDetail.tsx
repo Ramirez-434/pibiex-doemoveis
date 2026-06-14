@@ -29,7 +29,11 @@ const ItemDetail = () => {
     const [requesting, setRequesting] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [activeImage, setActiveImage] = useState(0);
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    let user = null;
+    try {
+        const userStr = localStorage.getItem('user');
+        if (userStr && userStr !== 'undefined') user = JSON.parse(userStr);
+    } catch(e) {}
 
     useEffect(() => {
         fetchItem();

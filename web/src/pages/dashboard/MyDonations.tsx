@@ -16,7 +16,11 @@ const MyDonations = () => {
     const [items, setItems] = useState<Item[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeChat, setActiveChat] = useState<{ requestId: string; itemName: string; otherUserName: string } | null>(null);
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    let user = {} as any;
+    try {
+        const userStr = localStorage.getItem('user');
+        if (userStr && userStr !== 'undefined') user = JSON.parse(userStr);
+    } catch(e) {}
 
     useEffect(() => {
         fetchMyDonations();

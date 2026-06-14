@@ -27,7 +27,11 @@ const ChatWindow = ({ requestId, itemName, otherUserName, onClose }: ChatWindowP
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    let user = {} as any;
+    try {
+        const userStr = localStorage.getItem('user');
+        if (userStr && userStr !== 'undefined') user = JSON.parse(userStr);
+    } catch(e) {}
 
     useEffect(() => {
         fetchMessages();

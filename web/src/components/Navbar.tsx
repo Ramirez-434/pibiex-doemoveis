@@ -7,7 +7,17 @@ const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const location = useLocation();
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    let user = null;
+    try {
+        const userStr = localStorage.getItem('user');
+        if (userStr && userStr !== 'undefined') {
+            user = JSON.parse(userStr);
+        } else if (userStr === 'undefined') {
+            localStorage.removeItem('user');
+        }
+    } catch (e) {
+        localStorage.removeItem('user');
+    }
 
     useEffect(() => {
         const handleScroll = () => {

@@ -5,7 +5,15 @@ import api from '../services/api';
 
 const Dashboard = () => {
     const location = useLocation();
-    const [user, setUser] = useState(JSON.parse(localStorage.getItem('user') || '{}'));
+    const [user, setUser] = useState(() => {
+        try {
+            const userStr = localStorage.getItem('user');
+            return userStr && userStr !== 'undefined' ? JSON.parse(userStr) : {};
+        } catch (e) {
+            localStorage.removeItem('user');
+            return {};
+        }
+    });
     const [uploading, setUploading] = useState(false);
 
     const menuItems = [

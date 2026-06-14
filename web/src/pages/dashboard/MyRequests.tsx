@@ -30,7 +30,11 @@ const MyRequests = () => {
     const [requests, setRequests] = useState<Request[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeChat, setActiveChat] = useState<{ requestId: string; itemName: string; otherUserName: string } | null>(null);
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    let user = {} as any;
+    try {
+        const userStr = localStorage.getItem('user');
+        if (userStr && userStr !== 'undefined') user = JSON.parse(userStr);
+    } catch(e) {}
     const [searchParams] = useSearchParams();
     const itemId = searchParams.get('itemId');
     const navigate = useNavigate();
