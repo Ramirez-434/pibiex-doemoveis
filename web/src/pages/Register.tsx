@@ -116,7 +116,7 @@ const Register = () => {
     };
 
     return (
-        <div className="min-h-screen flex flex-col justify-center bg-gray-50 pt-28 pb-10 px-4 font-sans">
+        <div className="min-h-screen flex flex-col justify-start bg-gray-50 pt-32 pb-10 px-4 font-sans">
             <div className="w-full max-w-6xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row-reverse animate-scale-in">
                 {/* Right Side - Image/Branding */}
                 <div className="md:w-5/12 bg-secondary p-10 md:p-12 text-white flex flex-col justify-between relative overflow-hidden">
