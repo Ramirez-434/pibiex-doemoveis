@@ -44,7 +44,7 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 font-sans">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 pt-28 pb-10 px-4 font-sans">
             <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row animate-scale-in">
                 {/* Left Side - Image/Branding */}
                 <div className="md:w-1/2 bg-primary p-12 text-white flex flex-col justify-between relative overflow-hidden">

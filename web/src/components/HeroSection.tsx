@@ -6,7 +6,7 @@ const HeroSection = () => {
     const navigate = useNavigate();
 
     return (
-        <section className="relative bg-gradient-to-br from-green-100 via-green-50 to-white py-16 sm:py-20 md:py-24 lg:py-32 overflow-hidden">
+        <section className="relative bg-gradient-to-br from-green-100 via-green-50 to-white pt-28 pb-16 sm:py-20 md:py-24 lg:py-32 overflow-hidden">
             <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 sm:w-96 h-64 sm:h-96 bg-green-200 rounded-full blur-3xl opacity-30 animate-float"></div>
             <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-56 sm:w-80 h-56 sm:h-80 bg-orange-200 rounded-full blur-3xl opacity-30 animate-float delay-700"></div>
 
