@@ -14,14 +14,14 @@ interface ItemProps {
 
 const ItemCard = ({ item }: { item: ItemProps }) => {
     return (
-        <div className="group bg-white rounded-2xl sm:rounded-3xl shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 flex flex-col h-full transform hover:-translate-y-2 hover:rotate-1">
+        <div className="group bg-white rounded-xl md:rounded-3xl shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden border border-gray-100 flex flex-col h-full transform motion-safe:hover:-translate-y-2">
             <div className="w-full aspect-video bg-gray-100 relative overflow-hidden">
                 {item.images[0] ? (
                     <img
                         src={item.images[0]}
                         alt={item.title}
                         loading="lazy"
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        className="w-full h-full object-cover transition-transform duration-700 motion-safe:group-hover:scale-105"
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-50">

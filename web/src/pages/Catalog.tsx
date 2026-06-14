@@ -267,9 +267,15 @@ const Catalog = () => {
                 ) : items.length > 0 ? (
                     <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 lg:gap-6">
                         {items.map((item, index) => (
-                            <ScrollReveal key={item.id} animation="fade-up" delay={(index % 4) * 100}>
-                                <ItemCard item={item} />
-                            </ScrollReveal>
+                            index < 6 ? (
+                                <ScrollReveal key={item.id} animation="fade-up" delay={(index % 4) * 100}>
+                                    <ItemCard item={item} />
+                                </ScrollReveal>
+                            ) : (
+                                <div key={item.id}>
+                                    <ItemCard item={item} />
+                                </div>
+                            )
                         ))}
                     </div>
                 ) : (

@@ -23,9 +23,9 @@ const Navbar = () => {
     }, [location]);
 
     return (
-        <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled || location.pathname !== '/' ? 'bg-white/95 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-4 sm:py-5'
-            }`} style={{ paddingTop: 'max(var(--safe-area-inset-top, 0px), 1rem)' }}>
-            <div className="container mx-auto px-3 sm:px-4">
+        <nav className={`fixed w-full z-50 transition-all duration-500 ease-out ${scrolled || location.pathname !== '/' ? 'top-2 sm:top-4 px-2 sm:px-4' : 'top-0 px-0'
+            }`} style={{ paddingTop: 'max(var(--safe-area-inset-top, 0px), 0px)' }}>
+            <div className={`mx-auto transition-all duration-500 ease-out ${scrolled || location.pathname !== '/' ? 'container bg-white/70 backdrop-blur-xl shadow-lg shadow-gray-200/50 border border-white/40 rounded-2xl py-3 px-4 sm:px-6' : 'container bg-transparent py-4 sm:py-6 px-4 sm:px-8'}`}>
                 <div className="flex justify-between items-center">
                     <Link to="/" className="flex items-center gap-2 group">
                         <img src="/logo.png" alt="Doe + Brasil Logo" className="w-14 h-14 sm:w-16 sm:h-16 object-contain group-hover:scale-110 transition-transform" />
