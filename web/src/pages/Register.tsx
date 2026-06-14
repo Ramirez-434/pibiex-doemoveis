@@ -6,6 +6,20 @@ import axios, { AxiosError } from 'axios';
 import { GoogleLogin } from '@react-oauth/google';
 import { Turnstile } from '@marsidev/react-turnstile';
 
+const calculatePasswordStrength = (password: string): { score: number, label: string, color: string } => {
+    if (!password) return { score: 0, label: '', color: 'bg-transparent' };
+    let score = 0;
+    if (password.length >= 6) score += 25;
+    if (password.length >= 8) score += 25;
+    if (/[A-Z]/.test(password)) score += 25;
+    if (/[0-9]/.test(password) || /[^A-Za-z0-9]/.test(password)) score += 25;
+
+    if (score <= 25) return { score: 25, label: 'Fraca', color: 'bg-red-500' };
+    if (score === 50) return { score: 50, label: 'Razoável', color: 'bg-yellow-500' };
+    if (score === 75) return { score: 75, label: 'Boa', color: 'bg-green-400' };
+    return { score: 100, label: 'Forte', color: 'bg-green-600' };
+};
+
 const Register = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
@@ -234,6 +248,22 @@ const Register = () => {
                                         {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                     </button>
                                 </div>
+                                {formData.password && (
+                                    <div className="mt-2 ml-1 mr-1 animate-fade-in-up">
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="text-xs font-medium text-gray-500">Força da senha:</span>
+                                            <span className={`text-xs font-bold ${calculatePasswordStrength(formData.password).color.replace('bg-', 'text-')}`}>
+                                                {calculatePasswordStrength(formData.password).label}
+                                            </span>
+                                        </div>
+                                        <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden flex gap-1">
+                                            <div 
+                                                className={`h-full transition-all duration-500 ${calculatePasswordStrength(formData.password).color}`} 
+                                                style={{ width: `${calculatePasswordStrength(formData.password).score}%` }}
+                                            ></div>
+                                        </div>
+                                    </div>
+                                )}
                                 {fieldErrors.password && <span className="text-red-500 text-xs ml-2 mt-1 block error-text">{fieldErrors.password}</span>}
                             </div>
 
