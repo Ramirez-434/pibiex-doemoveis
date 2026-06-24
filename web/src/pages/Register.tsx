@@ -128,7 +128,7 @@ const Register = () => {
             const response = await api.post('/auth/google', { token: credentialResponse.credential });
             localStorage.setItem('token', response.data.token);
             localStorage.setItem('user', JSON.stringify(response.data.user));
-            navigate('/painel');
+            navigate('/');
         } catch (err) {
             const error = err as AxiosError<{ error: string }>;
             setError(error.response?.data?.error || 'Falha ao se cadastrar com o Google.');
