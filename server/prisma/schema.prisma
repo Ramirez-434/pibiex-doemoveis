@@ -33,6 +33,8 @@ model User {
   messages      Message[]
   notifications Notification[]
   resetTokens   PasswordResetToken[]
+  blockedBy     BlockedUser[]     @relation("Blocked")
+  blocking      BlockedUser[]     @relation("Blocker")
 }
 
 model PasswordResetToken {
@@ -76,6 +78,7 @@ model DonationRequest {
 model Message {
   id        String          @id @default(uuid())
   content   String
+  type      String          @default("TEXT") // TEXT, SYSTEM
   requestId String
   request   DonationRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
   senderId  String
@@ -91,4 +94,16 @@ model Notification {
   message   String
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+model BlockedUser {
+  id        String   @id @default(uuid())
+  blockerId String
+  blockedId String
+  blocker   User     @relation("Blocker", fields: [blockerId], references: [id])
+  blocked   User     @relation("Blocked", fields: [blockedId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([blockerId, blockedId])
 }

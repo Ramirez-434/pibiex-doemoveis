@@ -9,6 +9,7 @@ import uploadRoutes from './routes/uploadRoutes';
 import chatRoutes from './routes/chatRoutes';
 import notificationRoutes from './routes/notificationRoutes';
 import adminRoutes from './routes/adminRoutes';
+import blockRoutes from './routes/blockRoutes';
 import { startCronJobs } from './cronJob';
 import path from 'path';
 import http from 'http';
@@ -78,6 +79,7 @@ app.use('/upload', uploadRoutes);
 app.use('/chat', chatRoutes);
 app.use('/notifications', notificationRoutes);
 app.use('/admin', adminRoutes);
+app.use('/block', blockRoutes);
 
 const server = http.createServer(app);
 

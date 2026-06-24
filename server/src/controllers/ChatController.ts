@@ -30,6 +30,23 @@ export const sendMessage = async (req: AuthRequest, res: Response): Promise<void
             return;
         }
 
+        const recipientId = senderId === request.beneficiaryId ? request.item.donorId : request.beneficiaryId;
+
+        // Verifica bloqueio
+        const block = await prisma.blockedUser.findFirst({
+            where: {
+                OR: [
+                    { blockerId: senderId, blockedId: recipientId },
+                    { blockerId: recipientId, blockedId: senderId }
+                ]
+            }
+        });
+
+        if (block) {
+            res.status(403).json({ error: 'Conversa bloqueada' });
+            return;
+        }
+
         const message = await prisma.message.create({
             data: {
                 content,
@@ -37,9 +54,6 @@ export const sendMessage = async (req: AuthRequest, res: Response): Promise<void
                 senderId,
             },
         });
-
-        // Determine recipient
-        const recipientId = senderId === request.beneficiaryId ? request.item.donorId : request.beneficiaryId;
 
         // Create notification for recipient
         await prisma.notification.create({
@@ -102,7 +116,22 @@ export const getMessages = async (req: AuthRequest, res: Response): Promise<void
             include: { sender: { select: { id: true, name: true } } },
         });
 
-        res.json(messages);
+        // Verificar se há bloqueio cruzado
+        const otherUserId = request.beneficiaryId === userId ? request.item.donorId : request.beneficiaryId;
+        const block = await prisma.blockedUser.findFirst({
+            where: {
+                OR: [
+                    { blockerId: userId, blockedId: otherUserId },
+                    { blockerId: otherUserId, blockedId: userId }
+                ]
+            }
+        });
+
+        res.json({
+            messages,
+            isBlocked: !!block,
+            requestStatus: request.status
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal server error' });
