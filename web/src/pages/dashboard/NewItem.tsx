@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, ArrowRight, Upload, Loader2 } from 'lucide-react';
+import imageCompression from 'browser-image-compression';
 import api from '../../services/api';
 
 const categories = ['ELETRONICOS', 'ROUPAS', 'MOVEIS', 'LIVROS', 'UTENSÍLIOS', 'BRINQUEDOS', 'ESPORTES', 'SAUDE', 'OUTROS'];
@@ -26,12 +27,23 @@ const NewItem = () => {
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
 
-        const file = e.target.files[0];
-        const formDataUpload = new FormData();
-        formDataUpload.append('image', file);
-
+        let file = e.target.files[0];
         setUploading(true);
+
         try {
+            // Compressão Client-side para evitar OOM no Backend (Render)
+            const options = {
+                maxSizeMB: 0.5, // Esmaga para no máximo ~500KB
+                maxWidthOrHeight: 1200,
+                useWebWorker: true,
+                initialQuality: 0.8
+            };
+            
+            const compressedFile = await imageCompression(file, options);
+
+            const formDataUpload = new FormData();
+            formDataUpload.append('image', compressedFile, compressedFile.name || 'image.jpg');
+
             const response = await api.post('/upload', formDataUpload);
 
             setFormData((prev: any) => ({

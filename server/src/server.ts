@@ -17,6 +17,12 @@ import { Server } from 'socket.io';
 
 const app = express();
 app.set('trust proxy', 1); // Confia no proxy da Render para pegar o IP real do cliente
+
+// Rota de Health Check para evitar Cold Start no plano gratuito (ex: UptimeRobot, cron-job.org)
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 const prismaClient = new PrismaClient();
 
 const prisma = prismaClient.$extends({

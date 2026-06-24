@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { PlusCircle, Package, HeartHandshake, User, LogOut, MessageCircle, Camera, Shield } from 'lucide-react';
+import imageCompression from 'browser-image-compression';
 import api from '../services/api';
 
 const Dashboard = () => {
@@ -34,14 +35,22 @@ const Dashboard = () => {
     };
 
     const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
+        let file = e.target.files?.[0];
         if (!file) return;
 
         setUploading(true);
-        const formData = new FormData();
-        formData.append('image', file);
-
         try {
+            // Compressão do Avatar
+            const options = {
+                maxSizeMB: 0.1, // Avatar precisa ser bem leve (~100KB)
+                maxWidthOrHeight: 500,
+                useWebWorker: true
+            };
+            file = await imageCompression(file, options);
+
+            const formData = new FormData();
+            formData.append('image', file, file.name || 'avatar.jpg');
+
             // 1. Upload image
             const uploadRes = await api.post('/upload', formData);
             const avatarUrl = uploadRes.data.url;
