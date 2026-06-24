@@ -178,6 +178,8 @@ export const getConversations = async (req: AuthRequest, res: Response): Promise
             return {
                 id: req.id,
                 itemId: req.item.id,
+                isDonor: isDonor,
+                requestStatus: req.status,
                 item: {
                     title: req.item.title,
                     image: JSON.parse(req.item.images)[0] || null,

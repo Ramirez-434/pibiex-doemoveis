@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Package, Clock, CheckCircle, MessageCircle } from 'lucide-react';
 import api from '../../services/api';
-import ChatWindow from '../../components/ChatWindow';
 
 interface Item {
     id: string;
@@ -15,7 +14,6 @@ interface Item {
 const MyDonations = () => {
     const [items, setItems] = useState<Item[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeChat, setActiveChat] = useState<{ requestId: string; itemName: string; otherUserName: string } | null>(null);
     let user = {} as any;
     try {
         const userStr = localStorage.getItem('user');
@@ -136,14 +134,6 @@ const MyDonations = () => {
                 </div>
             )}
 
-            {activeChat && (
-                <ChatWindow
-                    requestId={activeChat.requestId}
-                    itemName={activeChat.itemName}
-                    otherUserName={activeChat.otherUserName}
-                    onClose={() => setActiveChat(null)}
-                />
-            )}
         </div>
     );
 };

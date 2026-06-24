@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { Package, Clock, CheckCircle, XCircle, MessageCircle, ArrowLeft, Check } from 'lucide-react';
 import api from '../../services/api';
-import ChatWindow from '../../components/ChatWindow';
 
 interface Request {
     id: string;
@@ -29,7 +28,6 @@ interface Request {
 const MyRequests = () => {
     const [requests, setRequests] = useState<Request[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeChat, setActiveChat] = useState<{ requestId: string; itemName: string; otherUserName: string } | null>(null);
     let user = {} as any;
     try {
         const userStr = localStorage.getItem('user');
@@ -178,11 +176,7 @@ const MyRequests = () => {
                                     )}
 
                                     <button
-                                        onClick={() => setActiveChat({
-                                            requestId: req.id,
-                                            itemName: req.item.title,
-                                            otherUserName: isDonorView ? req.beneficiary?.name || 'Interessado' : req.item.donor.name
-                                        })}
+                                        onClick={() => navigate('/painel/mensagens', { state: { openChatId: req.id } })}
                                         className="px-3 py-1.5 border border-primary text-primary rounded-lg text-sm font-medium hover:bg-green-50 transition-colors flex items-center gap-1"
                                     >
                                         <MessageCircle size={14} /> Chat
@@ -214,14 +208,6 @@ const MyRequests = () => {
                 </div>
             )}
 
-            {activeChat && (
-                <ChatWindow
-                    requestId={activeChat.requestId}
-                    itemName={activeChat.itemName}
-                    otherUserName={activeChat.otherUserName}
-                    onClose={() => setActiveChat(null)}
-                />
-            )}
         </div>
     );
 };
