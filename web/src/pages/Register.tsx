@@ -374,7 +374,7 @@ const Register = () => {
 
                             <div className="mt-6 flex justify-center">
                                 <Turnstile
-                                    siteKey="1x00000000000000000000AA"
+                                    siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'}
                                     onSuccess={(token) => setTurnstileToken(token)}
                                     onError={() => setError('Falha no sistema antibot. Por favor, desative seu bloqueador de anúncios.')}
                                     onExpire={() => setTurnstileToken('')}

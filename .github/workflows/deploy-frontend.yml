@@ -30,6 +30,7 @@ jobs:
       working-directory: ./web
       env:
         VITE_API_URL: https://doebrasil.onrender.com
+        VITE_TURNSTILE_SITE_KEY: ${{ secrets.VITE_TURNSTILE_SITE_KEY }}
       run: npm run build
       
     - name: 📂 Sync files to HostGator
