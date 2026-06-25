@@ -1,9 +1,10 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { AuthRequest } from '../middleware/authMiddleware';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export const blockUser = async (req: Request, res: Response): Promise<void> => {
+export const blockUser = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const blockerId = req.user?.userId;
         const { blockedId } = req.body;
@@ -41,10 +42,10 @@ export const blockUser = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-export const unblockUser = async (req: Request, res: Response): Promise<void> => {
+export const unblockUser = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const blockerId = req.user?.userId;
-        const { blockedId } = req.params;
+        const blockedId = req.params.blockedId as string;
 
         if (!blockerId || !blockedId) {
             res.status(400).json({ error: 'IDs inválidos' });
@@ -75,7 +76,7 @@ export const unblockUser = async (req: Request, res: Response): Promise<void> =>
     }
 };
 
-export const getBlockedUsers = async (req: Request, res: Response): Promise<void> => {
+export const getBlockedUsers = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const blockerId = req.user?.userId;
 

@@ -1,10 +1,10 @@
 import express from 'express';
 import { blockUser, unblockUser, getBlockedUsers } from '../controllers/BlockController';
-import { authMiddleware } from '../middlewares/authMiddleware';
+import { authenticateToken } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-router.use(authMiddleware);
+router.use(authenticateToken);
 
 router.post('/', blockUser);
 router.delete('/:blockedId', unblockUser);
