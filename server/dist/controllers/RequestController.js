@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.approveRequest = exports.getRequests = exports.createRequest = void 0;
+exports.rejectRequest = exports.approveRequest = exports.getRequests = exports.createRequest = void 0;
 const server_1 = require("../server");
 const types_1 = require("../types");
 const emailService_1 = require("../services/emailService");
@@ -150,6 +150,29 @@ const approveRequest = (req, res) => __awaiter(void 0, void 0, void 0, function*
             where: { id: request.itemId },
             data: { status: types_1.ItemStatus.DONATED },
         });
+        // Gerar Mensagem de Sistema para o Aprovado
+        yield server_1.prisma.message.create({
+            data: {
+                content: "🎉 Doação Concluída! Você foi escolhido para receber este item.",
+                type: "SYSTEM",
+                requestId: id,
+                senderId: userId // Associado à ação do doador
+            }
+        });
+        // Gerar Mensagens de Sistema para os Recusados
+        const rejectedRequests = yield server_1.prisma.donationRequest.findMany({
+            where: { itemId: request.itemId, id: { not: String(id) } }
+        });
+        if (rejectedRequests.length > 0) {
+            yield server_1.prisma.message.createMany({
+                data: rejectedRequests.map(req => ({
+                    content: "Este item foi doado para outra pessoa. Continue explorando o catálogo!",
+                    type: "SYSTEM",
+                    requestId: req.id,
+                    senderId: userId
+                }))
+            });
+        }
         // Buscar email do beneficiário aprovado para notificar
         const beneficiaryUser = yield server_1.prisma.user.findUnique({ where: { id: request.beneficiaryId } });
         if (beneficiaryUser && beneficiaryUser.email) {
@@ -163,3 +186,44 @@ const approveRequest = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.approveRequest = approveRequest;
+const rejectRequest = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const { id } = req.params;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId;
+        if (!userId) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
+        const request = yield server_1.prisma.donationRequest.findUnique({
+            where: { id },
+            include: { item: true },
+        });
+        if (!request) {
+            res.status(404).json({ error: 'Request not found' });
+            return;
+        }
+        if (request.item.donorId !== userId) {
+            res.status(403).json({ error: 'You are not the donor of this item' });
+            return;
+        }
+        yield server_1.prisma.donationRequest.update({
+            where: { id },
+            data: { status: types_1.RequestStatus.REJECTED },
+        });
+        yield server_1.prisma.message.create({
+            data: {
+                content: "Sua solicitação foi recusada pelo doador. Continue procurando em nosso catálogo!",
+                type: "SYSTEM",
+                requestId: id,
+                senderId: userId
+            }
+        });
+        res.json({ message: 'Request rejected' });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+exports.rejectRequest = rejectRequest;

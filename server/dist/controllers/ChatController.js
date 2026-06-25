@@ -34,6 +34,20 @@ const sendMessage = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             res.status(403).json({ error: 'Forbidden' });
             return;
         }
+        const recipientId = senderId === request.beneficiaryId ? request.item.donorId : request.beneficiaryId;
+        // Verifica bloqueio
+        const block = yield server_1.prisma.blockedUser.findFirst({
+            where: {
+                OR: [
+                    { blockerId: senderId, blockedId: recipientId },
+                    { blockerId: recipientId, blockedId: senderId }
+                ]
+            }
+        });
+        if (block) {
+            res.status(403).json({ error: 'Conversa bloqueada' });
+            return;
+        }
         const message = yield server_1.prisma.message.create({
             data: {
                 content,
@@ -41,8 +55,6 @@ const sendMessage = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                 senderId,
             },
         });
-        // Determine recipient
-        const recipientId = senderId === request.beneficiaryId ? request.item.donorId : request.beneficiaryId;
         // Create notification for recipient
         yield server_1.prisma.notification.create({
             data: {
@@ -93,7 +105,21 @@ const getMessages = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             orderBy: { createdAt: 'asc' },
             include: { sender: { select: { id: true, name: true } } },
         });
-        res.json(messages);
+        // Verificar se há bloqueio cruzado
+        const otherUserId = request.beneficiaryId === userId ? request.item.donorId : request.beneficiaryId;
+        const block = yield server_1.prisma.blockedUser.findFirst({
+            where: {
+                OR: [
+                    { blockerId: userId, blockedId: otherUserId },
+                    { blockerId: otherUserId, blockedId: userId }
+                ]
+            }
+        });
+        res.json({
+            messages,
+            isBlocked: !!block,
+            requestStatus: request.status
+        });
     }
     catch (error) {
         console.error(error);
@@ -139,6 +165,8 @@ const getConversations = (req, res) => __awaiter(void 0, void 0, void 0, functio
             return {
                 id: req.id,
                 itemId: req.item.id,
+                isDonor: isDonor,
+                requestStatus: req.status,
                 item: {
                     title: req.item.title,
                     image: JSON.parse(req.item.images)[0] || null,

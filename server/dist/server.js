@@ -24,11 +24,17 @@ const uploadRoutes_1 = __importDefault(require("./routes/uploadRoutes"));
 const chatRoutes_1 = __importDefault(require("./routes/chatRoutes"));
 const notificationRoutes_1 = __importDefault(require("./routes/notificationRoutes"));
 const adminRoutes_1 = __importDefault(require("./routes/adminRoutes"));
+const blockRoutes_1 = __importDefault(require("./routes/blockRoutes"));
 const cronJob_1 = require("./cronJob");
 const path_1 = __importDefault(require("path"));
 const http_1 = __importDefault(require("http"));
 const socket_io_1 = require("socket.io");
 const app = (0, express_1.default)();
+app.set('trust proxy', 1); // Confia no proxy da Render para pegar o IP real do cliente
+// Rota de Health Check para evitar Cold Start no plano gratuito (ex: UptimeRobot, cron-job.org)
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 const prismaClient = new client_1.PrismaClient();
 const prisma = prismaClient.$extends({
     query: {
@@ -99,6 +105,7 @@ app.use('/upload', uploadRoutes_1.default);
 app.use('/chat', chatRoutes_1.default);
 app.use('/notifications', notificationRoutes_1.default);
 app.use('/admin', adminRoutes_1.default);
+app.use('/block', blockRoutes_1.default);
 const server = http_1.default.createServer(app);
 const io = new socket_io_1.Server(server, {
     cors: {

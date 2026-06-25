@@ -7,4 +7,5 @@ const router = (0, express_1.Router)();
 router.post('/', authMiddleware_1.authenticateToken, RequestController_1.createRequest);
 router.get('/', authMiddleware_1.authenticateToken, RequestController_1.getRequests);
 router.patch('/:id/approve', authMiddleware_1.authenticateToken, RequestController_1.approveRequest);
+router.patch('/:id/reject', authMiddleware_1.authenticateToken, RequestController_1.rejectRequest);
 exports.default = router;

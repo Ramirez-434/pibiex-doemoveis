@@ -12,17 +12,44 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateProfile = exports.resetPassword = exports.forgotPassword = exports.login = exports.register = void 0;
+exports.updateProfile = exports.resetPassword = exports.forgotPassword = exports.login = exports.googleLogin = exports.register = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const axios_1 = __importDefault(require("axios"));
 const server_1 = require("../server");
 const emailService_1 = require("../services/emailService");
+const google_auth_library_1 = require("google-auth-library");
+const client = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const SECRET_KEY = process.env.JWT_SECRET || 'supersecretkey';
+const TURNSTILE_SECRET_KEY = process.env.TURNSTILE_SECRET_KEY || '1x0000000000000000000000000000000AA';
 const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { name, email, password, phone, city, state } = req.body;
+        const { name, email, password, phone, city, state, turnstileToken } = req.body;
+        if (!turnstileToken) {
+            res.status(400).json({ error: 'Validação de segurança (Turnstile) falhou. Atualize a página e tente novamente.' });
+            return;
+        }
+        if (TURNSTILE_SECRET_KEY === '1x0000000000000000000000000000000AA') {
+            console.warn('⚠️ ALERTA: Turnstile rodando em modo de teste! Substitua no .env em produção.');
+        }
+        const formData = new URLSearchParams();
+        formData.append('secret', TURNSTILE_SECRET_KEY);
+        formData.append('response', turnstileToken);
+        const turnstileRes = yield axios_1.default.post('https://challenges.cloudflare.com/turnstile/v0/siteverify', formData, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+        });
+        if (!turnstileRes.data.success) {
+            res.status(400).json({ error: 'Validação de segurança rejeitada. Tente novamente.' });
+            return;
+        }
         const existingUser = yield server_1.prisma.user.findUnique({ where: { email } });
         if (existingUser) {
+            if (existingUser.authProvider === 'GOOGLE') {
+                res.status(400).json({ error: 'Esta conta foi criada com o Google. Por favor, utilize o botão Continuar com o Google.' });
+                return;
+            }
             res.status(400).json({ error: 'User already exists' });
             return;
         }
@@ -37,7 +64,14 @@ const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 state,
             },
         });
-        res.status(201).json({ message: 'User created successfully', userId: user.id });
+        const token = jsonwebtoken_1.default.sign({ userId: user.id, email: user.email, role: user.role }, SECRET_KEY, {
+            expiresIn: '7d',
+        });
+        res.status(201).json({
+            message: 'User created successfully',
+            token,
+            user: { id: user.id, name: user.name, email: user.email, role: user.role, city: user.city, state: user.state, avatar: user.avatar }
+        });
     }
     catch (error) {
         console.error(error);
@@ -45,11 +79,78 @@ const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.register = register;
+const googleLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { token } = req.body;
+        // Verifica a assinatura e expiração do token diretamente com o Google
+        const ticket = yield client.verifyIdToken({
+            idToken: token,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        const payload = ticket.getPayload();
+        if (!payload || !payload.email) {
+            res.status(400).json({ error: 'Token Google inválido.' });
+            return;
+        }
+        const email = payload.email;
+        const name = payload.name || 'Usuário Google';
+        const providerId = payload.sub; // ID único do Google
+        const avatar = payload.picture;
+        // Procura se o e-mail já existe
+        let user = yield server_1.prisma.user.findUnique({ where: { email } });
+        if (!user) {
+            // Se não existe, cria a conta blindada para o Google
+            user = yield server_1.prisma.user.create({
+                data: {
+                    email,
+                    name,
+                    avatar,
+                    authProvider: 'GOOGLE',
+                    providerId,
+                    password_hash: null, // Sem senha local
+                }
+            });
+        }
+        else {
+            // Se já existe e foi criado localmente no passado (sem provedor),
+            // a melhor prática de UX é atrelar a conta Google à conta existente
+            if (user.authProvider === 'LOCAL' && !user.providerId) {
+                user = yield server_1.prisma.user.update({
+                    where: { email },
+                    data: {
+                        authProvider: 'GOOGLE',
+                        providerId,
+                        // Mantém a senha para permitir login misto caso deseje no futuro
+                    }
+                });
+            }
+        }
+        // Gera o nosso próprio JWT da aplicação para manter a sessão
+        const appToken = jsonwebtoken_1.default.sign({ userId: user.id, email: user.email, role: user.role }, SECRET_KEY, {
+            expiresIn: '7d',
+        });
+        res.json({ token: appToken, user: { id: user.id, name: user.name, email: user.email, role: user.role, city: user.city, state: user.state, avatar: user.avatar } });
+    }
+    catch (error) {
+        console.error('Google Auth Error:', error);
+        res.status(401).json({ error: 'Falha na autenticação com o Google.' });
+    }
+});
+exports.googleLogin = googleLogin;
 const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { email, password } = req.body;
         const user = yield server_1.prisma.user.findUnique({ where: { email } });
         if (!user) {
+            res.status(401).json({ error: 'Invalid credentials' });
+            return;
+        }
+        if (user.authProvider === 'GOOGLE') {
+            res.status(400).json({ error: 'Esta conta foi criada com o Google. Por favor, utilize o botão Continuar com o Google.' });
+            return;
+        }
+        // TypeScript now requires us to handle null password_hash, though for LOCAL users it shouldn't be null
+        if (!user.password_hash) {
             res.status(401).json({ error: 'Invalid credentials' });
             return;
         }
@@ -101,7 +202,10 @@ const forgotPassword = (req, res) => __awaiter(void 0, void 0, void 0, function*
                 <p>Este link expira em 1 hora.</p>
             </div>
         `;
-        yield (0, emailService_1.sendEmail)(email, 'DoeBrasil - Recuperação de Senha', html);
+        // Dispara o e-mail em background (não bloqueia a resposta para o usuário)
+        (0, emailService_1.sendEmail)(email, 'DoeBrasil - Recuperação de Senha', html).catch((err) => {
+            console.error('Falha ao enviar e-mail em background:', err);
+        });
         res.status(200).json({ message: 'Se o email existir, um link de recuperação será enviado.' });
     }
     catch (error) {
