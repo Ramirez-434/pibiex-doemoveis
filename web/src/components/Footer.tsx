@@ -49,8 +49,8 @@ export const Footer: React.FC = () => {
             <ul className="space-y-2 text-xs sm:text-sm">
               <li className="flex items-center gap-2">
                 <Mail size={14} />
-                <a href="mailto:contato@doebrasil.com" className="hover:text-primary transition">
-                  contato@doebrasil.com
+                <a href="mailto:contato@doemaisbr.com.br" className="hover:text-primary transition">
+                  contato@doemaisbr.com.br
                 </a>
               </li>
               <li className="flex items-center gap-2">
