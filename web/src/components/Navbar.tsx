@@ -38,7 +38,7 @@ const Navbar = () => {
             <div className={`mx-auto transition-all duration-500 ease-out ${scrolled || location.pathname !== '/' ? 'container bg-white/70 backdrop-blur-xl shadow-lg shadow-gray-200/50 border border-white/40 rounded-2xl py-3 px-4 sm:px-6' : 'container bg-transparent py-4 sm:py-6 px-4 sm:px-8'}`}>
                 <div className="flex justify-between items-center">
                     <Link to="/" className="flex items-center gap-2 group">
-                        <img src="/logo.png" alt="Doe + Brasil Logo" className="w-14 h-14 sm:w-16 sm:h-16 object-contain group-hover:scale-110 transition-transform" />
+                        <img src="/logo.png" alt="Doe + Brasil Logo" className="w-20 h-20 sm:w-24 sm:h-24 object-contain group-hover:scale-110 transition-transform" />
                         <span className={`text-2xl font-bold tracking-tight transition-colors ${scrolled || location.pathname !== '/' ? 'text-gray-800' : 'text-green-900'
                             }`}>
                             Doe + Brasil
