@@ -53,16 +53,6 @@ export const Footer: React.FC = () => {
                   contato@doemaisbr.com.br
                 </a>
               </li>
-              <li className="flex items-center gap-2">
-                <Phone size={14} />
-                <a href="tel:+551133333333" className="hover:text-primary transition">
-                  (11) 3333-3333
-                </a>
-              </li>
-              <li className="flex items-center gap-2">
-                <MapPin size={14} />
-                <span>São Paulo, SP</span>
-              </li>
             </ul>
           </div>
 
