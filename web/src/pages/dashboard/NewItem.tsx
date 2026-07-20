@@ -5,7 +5,7 @@ import imageCompression from 'browser-image-compression';
 import api from '../../services/api';
 
 const categories = ['ELETRONICOS', 'ROUPAS', 'MOVEIS', 'LIVROS', 'UTENSÍLIOS', 'BRINQUEDOS', 'ESPORTES', 'SAUDE', 'OUTROS'];
-const conditions = ['NOVO', 'BOM', 'REPARO'];
+const conditions = ['Excelente', 'Bom', 'Aceitável'];
 
 const NewItem = () => {
     const navigate = useNavigate();
@@ -130,18 +130,22 @@ const NewItem = () => {
 
                     <div>
                         <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2">Condição</label>
-                        <select
-                            name="condition"
-                            value={formData.condition}
-                            onChange={handleChange}
-                            className="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all bg-white font-medium text-base min-h-[44px] sm:min-h-auto touch-manipulation"
-                            required
-                        >
-                            <option value="">Selecione...</option>
+                        <div className="grid grid-cols-3 gap-2 sm:gap-3">
                             {conditions.map(cond => (
-                                <option key={cond} value={cond}>{cond}</option>
+                                <button
+                                    key={cond}
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, condition: cond })}
+                                    className={`py-3 px-2 rounded-xl text-center font-medium text-sm sm:text-base transition-all ${
+                                        formData.condition === cond
+                                            ? 'border-2 border-blue-500 text-blue-600 bg-blue-50'
+                                            : 'border-2 border-dashed border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50'
+                                    }`}
+                                >
+                                    {cond}
+                                </button>
                             ))}
-                        </select>
+                        </div>
                     </div>
                 </div>
 

@@ -149,8 +149,8 @@ const ItemDetail = () => {
                         <div className="lg:w-2/5 p-6 lg:p-12 flex flex-col">
                             <div className="mb-6">
                                 <div className="flex items-center gap-3 mb-4">
-                                    <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${item.condition === 'NOVO' ? 'bg-green-100 text-green-700' :
-                                        item.condition === 'BOM' ? 'bg-blue-100 text-blue-700' :
+                                    <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${item.condition === 'Excelente' ? 'bg-green-100 text-green-700' :
+                                        item.condition === 'Bom' ? 'bg-blue-100 text-blue-700' :
                                             'bg-orange-100 text-orange-700'
                                         }`}>
                                         {item.condition}

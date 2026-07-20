@@ -170,9 +170,9 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ isOpen, onClos
               <div>
                 <h3 className="text-xs sm:text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Condição</h3>
                 <span className="inline-block bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
-                  {item?.condition === 'NOVO' && '✨ Novo'}
-                  {item?.condition === 'BOM' && '👍 Bom Estado'}
-                  {item?.condition === 'REPARO' && '🔧 Precisa de Reparo'}
+                  {item?.condition === 'Excelente' && '✨ Excelente'}
+                  {item?.condition === 'Bom' && '👍 Bom'}
+                  {item?.condition === 'Aceitável' && '🔧 Aceitável'}
                 </span>
               </div>
             </div>

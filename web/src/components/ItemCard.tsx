@@ -32,8 +32,8 @@ const ItemCard = ({ item }: { item: ItemProps }) => {
                 <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10">
                     <span className={`
             px-2 sm:px-4 py-1 sm:py-1.5 text-xs font-bold rounded-full uppercase tracking-wider shadow-lg backdrop-blur-md border border-white/20
-            ${item.condition === 'NOVO' ? 'bg-green-500/90 text-white' :
-                            item.condition === 'BOM' ? 'bg-blue-500/90 text-white' :
+            ${item.condition === 'Excelente' ? 'bg-green-500/90 text-white' :
+                            item.condition === 'Bom' ? 'bg-blue-500/90 text-white' :
                                 'bg-orange-500/90 text-white'}
           `}>
                         {item.condition}

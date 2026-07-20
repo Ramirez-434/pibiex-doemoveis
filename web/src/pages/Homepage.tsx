@@ -31,9 +31,9 @@ const CATEGORIES = [
 ];
 
 const CONDITIONS = [
-    { value: 'NOVO', label: 'Novo' },
-    { value: 'BOM', label: 'Bom Estado' },
-    { value: 'REPARO', label: 'Precisa de Reparo' }
+    { value: 'Excelente', label: 'Excelente' },
+    { value: 'Bom', label: 'Bom' },
+    { value: 'Aceitável', label: 'Aceitável' }
 ];
 
 const Homepage = () => {
