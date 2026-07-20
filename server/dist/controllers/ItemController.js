@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getPublicStats = exports.deleteItem = exports.createItem = exports.getItemById = exports.getItems = void 0;
+exports.updateItem = exports.getPublicStats = exports.deleteItem = exports.createItem = exports.getItemById = exports.getItems = void 0;
 const server_1 = require("../server");
 const types_1 = require("../types");
 const getItems = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -162,3 +162,44 @@ const getPublicStats = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.getPublicStats = getPublicStats;
+const updateItem = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const { id } = req.params;
+        const { title, description, category, condition, images } = req.body;
+        const donorId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId;
+        if (!donorId) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
+        const item = yield server_1.prisma.item.findUnique({ where: { id } });
+        if (!item) {
+            res.status(404).json({ error: 'Item not found' });
+            return;
+        }
+        if (item.donorId !== donorId) {
+            res.status(403).json({ error: 'Forbidden' });
+            return;
+        }
+        if (!title || !description || !category || !condition || !images) {
+            res.status(400).json({ error: 'Missing required fields' });
+            return;
+        }
+        const updatedItem = yield server_1.prisma.item.update({
+            where: { id },
+            data: {
+                title,
+                description,
+                category,
+                condition,
+                images: JSON.stringify(images),
+            },
+        });
+        res.json(Object.assign(Object.assign({}, updatedItem), { images: JSON.parse(updatedItem.images) }));
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+exports.updateItem = updateItem;

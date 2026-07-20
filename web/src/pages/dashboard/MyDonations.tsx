@@ -101,6 +101,13 @@ const MyDonations = () => {
                                         item.status === 'PENDING' ? 'Pendente' : 'Doado'}
                                 </span>
 
+                                <Link
+                                    to={`/painel/editar-item/${item.id}`}
+                                    className="text-gray-600 hover:text-primary font-medium text-sm transition-colors"
+                                >
+                                    Editar
+                                </Link>
+
                                 <button
                                     onClick={() => handleDelete(item.id)}
                                     className="text-red-500 hover:text-red-700 font-medium text-sm transition-colors"

@@ -8,5 +8,6 @@ router.get('/', ItemController_1.getItems);
 router.get('/stats/public', ItemController_1.getPublicStats);
 router.get('/:id', ItemController_1.getItemById);
 router.post('/', authMiddleware_1.authenticateToken, ItemController_1.createItem);
+router.put('/:id', authMiddleware_1.authenticateToken, ItemController_1.updateItem);
 router.delete('/:id', authMiddleware_1.authenticateToken, ItemController_1.deleteItem);
 exports.default = router;

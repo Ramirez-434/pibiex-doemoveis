@@ -9,6 +9,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import NewItem from './pages/dashboard/NewItem';
+import EditItem from './pages/dashboard/EditItem';
 import MyDonations from './pages/dashboard/MyDonations';
 import MyRequests from './pages/dashboard/MyRequests';
 import ChatList from './pages/dashboard/ChatList';
@@ -35,6 +36,7 @@ const AppRoutes = () => {
                 <Route path="/painel" element={<PrivateRoute><Dashboard /></PrivateRoute>}>
                     <Route index element={<Navigate to="/painel/novo-item" replace />} />
                     <Route path="novo-item" element={<NewItem />} />
+                    <Route path="editar-item/:id" element={<EditItem />} />
                     <Route path="minhas-doacoes" element={<MyDonations />} />
                     <Route path="solicitacoes" element={<MyRequests />} />
                     <Route path="chat" element={<ChatList />} />

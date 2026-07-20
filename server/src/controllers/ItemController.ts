@@ -172,3 +172,49 @@ export const getPublicStats = async (req: Request, res: Response): Promise<void>
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+export const updateItem = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params as { id: string };
+        const { title, description, category, condition, images } = req.body;
+        const donorId = req.user?.userId;
+
+        if (!donorId) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
+
+        const item = await prisma.item.findUnique({ where: { id } });
+
+        if (!item) {
+            res.status(404).json({ error: 'Item not found' });
+            return;
+        }
+
+        if (item.donorId !== donorId) {
+            res.status(403).json({ error: 'Forbidden' });
+            return;
+        }
+
+        if (!title || !description || !category || !condition || !images) {
+            res.status(400).json({ error: 'Missing required fields' });
+            return;
+        }
+
+        const updatedItem = await prisma.item.update({
+            where: { id },
+            data: {
+                title,
+                description,
+                category,
+                condition,
+                images: JSON.stringify(images),
+            },
+        });
+
+        res.json({ ...updatedItem, images: JSON.parse(updatedItem.images) });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
