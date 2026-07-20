@@ -4,7 +4,7 @@ import { User, Mail, Lock, MapPin, ArrowRight, Loader2, Eye, EyeOff } from 'luci
 import api from '../services/api';
 import axios, { AxiosError } from 'axios';
 import { GoogleLogin } from '@react-oauth/google';
-import { Turnstile } from '@marsidev/react-turnstile';
+
 
 const calculatePasswordStrength = (password: string): { score: number, label: string, color: string } => {
     if (!password) return { score: 0, label: '', color: 'bg-transparent' };
@@ -36,7 +36,7 @@ const Register = () => {
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-    const [turnstileToken, setTurnstileToken] = useState('');
+
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,11 +84,7 @@ const Register = () => {
         if (formData.password.length > 0 && formData.password.length < 6) newErrors.password = 'A senha deve ter pelo menos 6 caracteres';
         if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'As senhas não coincidem.';
         if (!formData.consentLGPD) newErrors.consentLGPD = 'Você precisa aceitar a Política de Privacidade.';
-        
-        if (!turnstileToken) {
-            setError('Por favor, aguarde a verificação de segurança (Turnstile) ou desative seu bloqueador de anúncios.');
-            return;
-        }
+
 
         if (Object.keys(newErrors).length > 0) {
             setFieldErrors(newErrors);
@@ -106,7 +102,6 @@ const Register = () => {
                 password: formData.password,
                 city: formData.city,
                 state: formData.state,
-                turnstileToken,
             });
             
             // Auto-login
@@ -370,16 +365,6 @@ const Register = () => {
                                     </p>
                                     {fieldErrors.consentLGPD && <span className="text-red-500 text-xs mt-1 block error-text">{fieldErrors.consentLGPD}</span>}
                                 </div>
-                            </div>
-
-                            <div className="mt-6 flex justify-center">
-                                <Turnstile
-                                    siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'}
-                                    onSuccess={(token) => setTurnstileToken(token)}
-                                    onError={() => setError('Falha no sistema antibot. Por favor, desative seu bloqueador de anúncios.')}
-                                    onExpire={() => setTurnstileToken('')}
-                                    options={{ theme: 'light' }}
-                                />
                             </div>
 
                             <button

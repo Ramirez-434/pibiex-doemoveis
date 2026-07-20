@@ -15,35 +15,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateProfile = exports.resetPassword = exports.forgotPassword = exports.login = exports.googleLogin = exports.register = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const axios_1 = __importDefault(require("axios"));
 const server_1 = require("../server");
 const emailService_1 = require("../services/emailService");
 const google_auth_library_1 = require("google-auth-library");
 const client = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const SECRET_KEY = process.env.JWT_SECRET || 'supersecretkey';
-const TURNSTILE_SECRET_KEY = process.env.TURNSTILE_SECRET_KEY || '1x0000000000000000000000000000000AA';
 const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { name, email, password, phone, city, state, turnstileToken } = req.body;
-        if (!turnstileToken) {
-            res.status(400).json({ error: 'Validação de segurança (Turnstile) falhou. Atualize a página e tente novamente.' });
-            return;
-        }
-        if (TURNSTILE_SECRET_KEY === '1x0000000000000000000000000000000AA') {
-            console.warn('⚠️ ALERTA: Turnstile rodando em modo de teste! Substitua no .env em produção.');
-        }
-        const formData = new URLSearchParams();
-        formData.append('secret', TURNSTILE_SECRET_KEY);
-        formData.append('response', turnstileToken);
-        const turnstileRes = yield axios_1.default.post('https://challenges.cloudflare.com/turnstile/v0/siteverify', formData, {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-        });
-        if (!turnstileRes.data.success) {
-            res.status(400).json({ error: 'Validação de segurança rejeitada. Tente novamente.' });
-            return;
-        }
+        const { name, email, password, phone, city, state } = req.body;
         const existingUser = yield server_1.prisma.user.findUnique({ where: { email } });
         if (existingUser) {
             if (existingUser.authProvider === 'GOOGLE') {
