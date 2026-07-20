@@ -129,7 +129,7 @@ const Homepage = () => {
                                 onChange={(e) => setCategory(e.target.value)}
                                 className="w-full sm:w-40 appearance-none pl-4 pr-10 py-2.5 rounded-xl border border-gray-200 bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all cursor-pointer text-gray-600"
                             >
-                                <option value="">Categorias</option>
+                                <option value="">Todas as Categorias</option>
                                 {CATEGORIES.map(cat => (
                                     <option key={cat.value} value={cat.value}>{cat.label}</option>
                                 ))}
@@ -144,7 +144,7 @@ const Homepage = () => {
                                 onChange={(e) => setCondition(e.target.value)}
                                 className="w-full sm:w-40 appearance-none pl-4 pr-10 py-2.5 rounded-xl border border-gray-200 bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all cursor-pointer text-gray-600"
                             >
-                                <option value="">Condição</option>
+                                <option value="">Todas as Condições</option>
                                 {CONDITIONS.map(cond => (
                                     <option key={cond.value} value={cond.value}>{cond.label}</option>
                                 ))}
