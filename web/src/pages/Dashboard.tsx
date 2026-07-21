@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import { PlusCircle, Package, HeartHandshake, User, LogOut, MessageCircle, Camera, Shield, Menu, X, ChevronRight } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
 import api from '../services/api';
 
 const Dashboard = () => {
     const location = useLocation();
-    const navigate = useNavigate();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [user, setUser] = useState(() => {
         try {
