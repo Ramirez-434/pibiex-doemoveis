@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Package, Clock, CheckCircle, MessageCircle } from 'lucide-react';
+import { Package, Clock, CheckCircle, MessageCircle, Edit2, Trash2 } from 'lucide-react';
 import api from '../../services/api';
 
 interface Item {
@@ -71,56 +71,59 @@ const MyDonations = () => {
             ) : items.length > 0 ? (
                 <div className="space-y-4">
                     {items.map((item) => (
-                        <div key={item.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-                            <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                                {item.images[0] ? (
-                                    <img src={item.images[0]} alt={item.title} className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                        <Package size={20} />
+                        <div key={item.id} className="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 transition-all hover:shadow-md">
+                            <div className="flex gap-4 w-full sm:w-auto flex-1">
+                                <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 border border-gray-100">
+                                    {item.images[0] ? (
+                                        <img src={item.images[0]} alt={item.title} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                            <Package size={24} />
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                                    <h3 className="font-bold text-gray-800 text-base sm:text-lg mb-1 truncate">{item.title}</h3>
+                                    <p className="text-xs sm:text-sm text-gray-500 whitespace-normal">
+                                        Publicado em {new Date(item.createdAt).toLocaleDateString()}
+                                    </p>
+                                    <div className="mt-2">
+                                        <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase items-center gap-1 w-max ${item.status === 'AVAILABLE' ? 'bg-green-100 text-green-700 border border-green-200' :
+                                            item.status === 'PENDING' ? 'bg-orange-100 text-orange-700 border border-orange-200' :
+                                                'bg-gray-100 text-gray-700 border border-gray-200'
+                                            }`}>
+                                            {item.status === 'AVAILABLE' && <CheckCircle size={12} />}
+                                            {item.status === 'PENDING' && <Clock size={12} />}
+                                            {item.status === 'DONATED' && <Package size={12} />}
+                                            {item.status === 'AVAILABLE' ? 'Disponível' :
+                                                item.status === 'PENDING' ? 'Pendente' : 'Doado'}
+                                        </span>
                                     </div>
-                                )}
+                                </div>
                             </div>
 
-                            <div className="flex-1 min-w-0">
-                                <h3 className="font-bold text-gray-800 truncate">{item.title}</h3>
-                                <p className="text-sm text-gray-500">
-                                    Publicado em {new Date(item.createdAt).toLocaleDateString()}
-                                </p>
-                            </div>
-
-                            <div className="flex items-center gap-4">
-                                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase flex items-center gap-1 ${item.status === 'AVAILABLE' ? 'bg-green-100 text-green-700' :
-                                    item.status === 'PENDING' ? 'bg-orange-100 text-orange-700' :
-                                        'bg-gray-100 text-gray-700'
-                                    }`}>
-                                    {item.status === 'AVAILABLE' && <CheckCircle size={12} />}
-                                    {item.status === 'PENDING' && <Clock size={12} />}
-                                    {item.status === 'DONATED' && <Package size={12} />}
-                                    {item.status === 'AVAILABLE' ? 'Disponível' :
-                                        item.status === 'PENDING' ? 'Pendente' : 'Doado'}
-                                </span>
+                            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 w-full sm:w-auto pt-3 sm:pt-0 border-t border-gray-100 sm:border-0 mt-2 sm:mt-0">
+                                <Link
+                                    to={`/painel/solicitacoes?itemId=${item.id}`}
+                                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg font-bold text-xs sm:text-sm transition-colors"
+                                >
+                                    <MessageCircle size={16} /> Interessados
+                                </Link>
 
                                 <Link
                                     to={`/painel/editar-item/${item.id}`}
-                                    className="text-gray-600 hover:text-primary font-medium text-sm transition-colors"
+                                    className="flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg font-bold text-xs sm:text-sm transition-colors"
                                 >
-                                    Editar
+                                    <Edit2 size={16} /> Editar
                                 </Link>
 
                                 <button
                                     onClick={() => handleDelete(item.id)}
-                                    className="text-red-500 hover:text-red-700 font-medium text-sm transition-colors"
+                                    className="flex items-center justify-center gap-1.5 px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-bold text-xs sm:text-sm transition-colors"
                                 >
-                                    Excluir
+                                    <Trash2 size={16} /> Excluir
                                 </button>
-
-                                <Link
-                                    to={`/painel/solicitacoes?itemId=${item.id}`}
-                                    className="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors flex items-center gap-1"
-                                >
-                                    <MessageCircle size={16} /> Ver Interessados
-                                </Link>
                             </div>
                         </div>
                     ))}

@@ -97,7 +97,7 @@ const NewItem = () => {
                 </div>
             )}
 
-            <form onSubmit={handleSubmit} className="bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8">
+            <form onSubmit={handleSubmit} className="bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-4 sm:p-8 md:p-10 space-y-8 sm:space-y-10">
                 <div>
                     <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2">Título do Anúncio</label>
                     <input
@@ -105,7 +105,7 @@ const NewItem = () => {
                         name="title"
                         value={formData.title}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-medium text-base min-h-[44px] sm:min-h-auto touch-manipulation"
+                        className="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all font-medium text-gray-800 text-base min-h-[44px] sm:min-h-auto touch-manipulation"
                         placeholder="Ex: Item em bom estado"
                         required
                     />
@@ -118,7 +118,7 @@ const NewItem = () => {
                             name="category"
                             value={formData.category}
                             onChange={handleChange}
-                            className="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all bg-white font-medium text-base min-h-[44px] sm:min-h-auto touch-manipulation"
+                            className="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all bg-white font-medium text-gray-800 text-base min-h-[44px] sm:min-h-auto touch-manipulation"
                             required
                         >
                             <option value="">Selecione...</option>
@@ -138,8 +138,8 @@ const NewItem = () => {
                                     onClick={() => setFormData({ ...formData, condition: cond })}
                                     className={`py-3 px-2 rounded-xl text-center font-medium text-sm sm:text-base transition-all ${
                                         formData.condition === cond
-                                            ? 'border-2 border-blue-500 text-blue-600 bg-blue-50'
-                                            : 'border-2 border-dashed border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50'
+                                            ? 'border-2 border-primary text-primary bg-primary/10'
+                                            : 'border-2 border-dashed border-gray-400 text-gray-700 hover:border-gray-500 hover:bg-gray-50'
                                     }`}
                                 >
                                     {cond}
@@ -156,7 +156,7 @@ const NewItem = () => {
                         value={formData.description}
                         onChange={handleChange}
                         rows={4}
-                        className="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none font-medium text-base touch-manipulation"
+                        className="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all resize-none font-medium text-gray-800 text-base touch-manipulation"
                         placeholder="Descreva o estado do item, medidas aproximadas, etc."
                         required
                     />
@@ -181,7 +181,7 @@ const NewItem = () => {
 
                         {formData.images.length < 4 && (
                             <label className={`
-                                relative aspect-square rounded-xl border-2 border-dashed border-gray-300 hover:border-primary hover:bg-green-50/50 
+                                relative aspect-square rounded-xl border-2 border-dashed border-gray-400 hover:border-primary hover:bg-green-50/50 
                                 flex flex-col items-center justify-center cursor-pointer transition-all group
                                 ${uploading ? 'opacity-50 cursor-not-allowed' : ''}
                             `}>
