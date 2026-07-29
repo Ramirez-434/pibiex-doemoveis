@@ -1,0 +1,59 @@
+name: Deploy Backend to HostGator
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'server/**' # Executa apenas quando houver mudanças na pasta do backend
+
+jobs:
+  backend-deploy:
+    name: 🚀 Build & Deploy Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🚚 Checkout código
+        uses: actions/checkout@v4
+
+      - name: 🟢 Configurar Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+
+      - name: 📦 Instalar dependências
+        working-directory: ./server
+        run: npm ci
+
+      - name: 🔨 Compilar TypeScript → JavaScript
+        working-directory: ./server
+        run: npm run build
+
+      - name: 📂 Enviar arquivos compilados via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          # Apenas a pasta dist/ (código compilado)
+          local-dir: ./server/dist/
+          # Caminho no servidor onde fica o dist do backend
+          server-dir: ./api.doemaisbr.com.br/dist/
+          # NÃO usar clean-slate para não apagar outros arquivos do servidor
+          dangerous-clean-slate: false
+
+      - name: ♻️ Reiniciar aplicação Node via cPanel API
+        env:
+          CPANEL_USER: ${{ secrets.CPANEL_USER }}
+          CPANEL_TOKEN: ${{ secrets.CPANEL_TOKEN }}
+          CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
+        run: |
+          echo "Reiniciando aplicação Passenger no cPanel..."
+          curl -s -X POST \
+            "https://${CPANEL_HOST}:2083/execute/PassengerApps/restart_app" \
+            -H "Authorization: cpanel ${CPANEL_USER}:${CPANEL_TOKEN}" \
+            -d "app_name=api" \
+          && echo "✅ Aplicação reiniciada com sucesso!" \
+          || echo "⚠️ Reinicialização automática falhou — reinicie manualmente no cPanel."
