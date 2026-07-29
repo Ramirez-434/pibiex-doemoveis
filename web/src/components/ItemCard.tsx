@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Clock, Package } from 'lucide-react';
+import { MapPin, Clock, Package, ArrowRight } from 'lucide-react';
 
 interface ItemProps {
     id: string;
