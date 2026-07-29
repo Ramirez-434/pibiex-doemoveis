@@ -28,6 +28,7 @@ interface Request {
 const MyRequests = () => {
     const [requests, setRequests] = useState<Request[]>([]);
     const [loading, setLoading] = useState(true);
+    const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
     let user = {} as any;
     try {
         const userStr = localStorage.getItem('user');
@@ -107,12 +108,17 @@ const MyRequests = () => {
                     {requests.map((req) => (
                         <div key={req.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center gap-4">
                             {!isDonorView && (
-                                <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                                    {req.item.images[0] ? (
-                                        <img src={req.item.images[0]} alt={req.item.title} className="w-full h-full object-cover" />
+                                <div className="w-20 h-20 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 border border-gray-100">
+                                    {req.item.images[0] && !failedImages[req.id] ? (
+                                        <img 
+                                            src={req.item.images[0]} 
+                                            alt={req.item.title} 
+                                            className="w-full h-full object-cover" 
+                                            onError={() => setFailedImages(prev => ({ ...prev, [req.id]: true }))}
+                                        />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                            <Package size={20} />
+                                            <Package size={24} />
                                         </div>
                                     )}
                                 </div>

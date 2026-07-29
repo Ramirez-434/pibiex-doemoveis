@@ -44,7 +44,7 @@ const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             },
         });
         const token = jsonwebtoken_1.default.sign({ userId: user.id, email: user.email, role: user.role }, SECRET_KEY, {
-            expiresIn: '7d',
+            expiresIn: '30d',
         });
         res.status(201).json({
             message: 'User created successfully',
@@ -106,7 +106,7 @@ const googleLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         }
         // Gera o nosso próprio JWT da aplicação para manter a sessão
         const appToken = jsonwebtoken_1.default.sign({ userId: user.id, email: user.email, role: user.role }, SECRET_KEY, {
-            expiresIn: '7d',
+            expiresIn: '30d',
         });
         res.json({ token: appToken, user: { id: user.id, name: user.name, email: user.email, role: user.role, city: user.city, state: user.state, avatar: user.avatar } });
     }
@@ -139,7 +139,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             return;
         }
         const token = jsonwebtoken_1.default.sign({ userId: user.id, email: user.email, role: user.role }, SECRET_KEY, {
-            expiresIn: '7d',
+            expiresIn: '30d',
         });
         res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role, city: user.city, state: user.state, avatar: user.avatar } });
     }

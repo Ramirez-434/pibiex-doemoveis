@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Clock, ArrowRight } from 'lucide-react';
+import { MapPin, Clock, Package } from 'lucide-react';
 
 interface ItemProps {
     id: string;
@@ -13,19 +14,23 @@ interface ItemProps {
 }
 
 const ItemCard = ({ item }: { item: ItemProps }) => {
+    const [imgError, setImgError] = useState(false);
+
     return (
         <div className="group bg-white rounded-xl md:rounded-3xl shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden border border-gray-100 flex flex-col h-full transform motion-safe:hover:-translate-y-2">
             <div className="w-full aspect-video bg-gray-100 relative overflow-hidden">
-                {item.images[0] ? (
+                {item.images[0] && !imgError ? (
                     <img
                         src={item.images[0]}
                         alt={item.title}
                         loading="lazy"
                         className="w-full h-full object-cover transition-transform duration-700 motion-safe:group-hover:scale-105"
+                        onError={() => setImgError(true)}
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-50">
-                        <span className="text-xs sm:text-sm font-medium">Sem imagem</span>
+                    <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-50 gap-1">
+                        <Package size={28} />
+                        <span className="text-xs font-medium">Sem imagem</span>
                     </div>
                 )}
 

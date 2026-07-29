@@ -14,6 +14,7 @@ interface Item {
 const MyDonations = () => {
     const [items, setItems] = useState<Item[]>([]);
     const [loading, setLoading] = useState(true);
+    const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
     let user = {} as any;
     try {
         const userStr = localStorage.getItem('user');
@@ -74,8 +75,13 @@ const MyDonations = () => {
                         <div key={item.id} className="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 transition-all hover:shadow-md">
                             <div className="flex gap-4 w-full sm:w-auto flex-1">
                                 <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 border border-gray-100">
-                                    {item.images[0] ? (
-                                        <img src={item.images[0]} alt={item.title} className="w-full h-full object-cover" />
+                                    {item.images[0] && !failedImages[item.id] ? (
+                                        <img 
+                                            src={item.images[0]} 
+                                            alt={item.title} 
+                                            className="w-full h-full object-cover" 
+                                            onError={() => setFailedImages(prev => ({ ...prev, [item.id]: true }))}
+                                        />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center text-gray-400">
                                             <Package size={24} />
