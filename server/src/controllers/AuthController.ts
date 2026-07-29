@@ -9,6 +9,7 @@ import { OAuth2Client } from 'google-auth-library';
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+// JWT secret (30 days token expiration)
 const SECRET_KEY = process.env.JWT_SECRET || 'supersecretkey';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
