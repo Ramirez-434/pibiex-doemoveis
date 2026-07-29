@@ -39,7 +39,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         });
 
         const token = jwt.sign({ userId: user.id, email: user.email, role: user.role }, SECRET_KEY, {
-            expiresIn: '7d',
+            expiresIn: '30d',
         });
 
         res.status(201).json({ 
@@ -106,7 +106,7 @@ export const googleLogin = async (req: Request, res: Response): Promise<void> =>
 
         // Gera o nosso próprio JWT da aplicação para manter a sessão
         const appToken = jwt.sign({ userId: user.id, email: user.email, role: user.role }, SECRET_KEY, {
-            expiresIn: '7d',
+            expiresIn: '30d',
         });
 
         res.json({ token: appToken, user: { id: user.id, name: user.name, email: user.email, role: user.role, city: user.city, state: user.state, avatar: user.avatar } });
@@ -146,7 +146,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         }
 
         const token = jwt.sign({ userId: user.id, email: user.email, role: user.role }, SECRET_KEY, {
-            expiresIn: '7d',
+            expiresIn: '30d',
         });
 
         res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role, city: user.city, state: user.state, avatar: user.avatar } });
