@@ -10,7 +10,8 @@ const conditions = ['Excelente', 'Bom', 'Aceitável'];
 const NewItem = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-    const [uploading, setUploading] = useState(false);
+    const [uploadingCount, setUploadingCount] = useState(0); // quantas imagens estão subindo
+    const [uploadProgress, setUploadProgress] = useState<string[]>([]); // nomes dos arquivos em progresso
     const [error, setError] = useState('');
     const [formData, setFormData] = useState({
         title: '',
@@ -27,35 +28,55 @@ const NewItem = () => {
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
 
-        let file = e.target.files[0];
-        setUploading(true);
+        const files = Array.from(e.target.files);
+        const remainingSlots = 4 - formData.images.length;
+        const filesToProcess = files.slice(0, remainingSlots);
 
-        try {
-            // Compressão Client-side para evitar OOM no Backend (Render)
-            const options = {
-                maxSizeMB: 0.5, // Esmaga para no máximo ~500KB
-                maxWidthOrHeight: 1200,
-                useWebWorker: true,
-                initialQuality: 0.8
-            };
-            
-            const compressedFile = await imageCompression(file, options);
+        if (filesToProcess.length === 0) return;
 
-            const formDataUpload = new FormData();
-            formDataUpload.append('image', compressedFile, compressedFile.name || 'image.jpg');
+        setUploadingCount(filesToProcess.length);
+        setUploadProgress(filesToProcess.map(f => f.name));
+        setError('');
 
-            const response = await api.post('/upload', formDataUpload);
+        // Upload em paralelo
+        const uploadPromises = filesToProcess.map(async (file) => {
+            try {
+                const options = {
+                    maxSizeMB: 0.5,
+                    maxWidthOrHeight: 1200,
+                    useWebWorker: true,
+                    initialQuality: 0.8
+                };
+                const compressedFile = await imageCompression(file, options);
+                const formDataUpload = new FormData();
+                formDataUpload.append('image', compressedFile, compressedFile.name || 'image.jpg');
+                const response = await api.post('/upload', formDataUpload);
+                return response.data.url as string;
+            } catch (err) {
+                console.error('Upload failed for:', file.name, err);
+                return null;
+            }
+        });
 
+        const results = await Promise.all(uploadPromises);
+        const successfulUrls = results.filter((url): url is string => url !== null);
+        const failedCount = results.filter(r => r === null).length;
+
+        if (failedCount > 0) {
+            setError(`${failedCount} foto(s) falharam no upload. As demais foram salvas.`);
+        }
+
+        if (successfulUrls.length > 0) {
             setFormData((prev: any) => ({
                 ...prev,
-                images: [...prev.images, response.data.url]
+                images: [...prev.images, ...successfulUrls]
             }));
-        } catch (err) {
-            console.error('Upload failed:', err);
-            setError('Falha ao fazer upload da imagem.');
-        } finally {
-            setUploading(false);
         }
+
+        setUploadingCount(0);
+        setUploadProgress([]);
+        // Reset input para permitir reselecionar os mesmos arquivos
+        e.target.value = '';
     };
 
     const removeImage = (index: number) => {
@@ -183,37 +204,54 @@ const NewItem = () => {
                             <label className={`
                                 relative aspect-square rounded-xl border-2 border-dashed border-gray-400 hover:border-primary hover:bg-green-50/50 
                                 flex flex-col items-center justify-center cursor-pointer transition-all group
-                                ${uploading ? 'opacity-50 cursor-not-allowed' : ''}
+                                ${uploadingCount > 0 ? 'opacity-50 cursor-not-allowed' : ''}
                             `}>
                                 <input
                                     type="file"
                                     accept="image/*"
                                     onChange={handleFileUpload}
                                     className="hidden"
-                                    disabled={uploading}
+                                    disabled={uploadingCount > 0}
+                                    multiple
                                 />
-                                {uploading ? (
-                                    <Loader2 className="animate-spin text-primary" size={24} />
+                                {uploadingCount > 0 ? (
+                                    <div className="flex flex-col items-center gap-2">
+                                        <Loader2 className="animate-spin text-primary" size={24} />
+                                        <span className="text-xs font-bold text-primary text-center px-1">
+                                            {uploadingCount === 1 ? 'Enviando...' : `Enviando ${uploadingCount} fotos...`}
+                                        </span>
+                                    </div>
                                 ) : (
                                     <>
                                         <div className="w-8 sm:w-10 h-8 sm:h-10 bg-gray-100 rounded-full flex items-center justify-center mb-2 group-hover:bg-white group-hover:text-primary transition-colors text-gray-400">
                                             <Upload size={18} className="sm:w-5 sm:h-5" />
                                         </div>
-                                        <span className="text-xs font-bold text-gray-500 group-hover:text-primary text-center px-1">Adicionar Foto</span>
+                                        <span className="text-xs font-bold text-gray-500 group-hover:text-primary text-center px-1">Adicionar Fotos</span>
+                                        <span className="text-[10px] text-gray-400 mt-0.5">Selecione várias</span>
                                     </>
                                 )}
                             </label>
                         )}
                     </div>
                     <p className="text-xs text-gray-400 font-medium">
-                        Adicione até 4 fotos. Formatos aceitos: JPG, PNG.
+                        Adicione até 4 fotos de uma vez. Formatos aceitos: JPG, PNG.
                     </p>
+                    {uploadProgress.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                            {uploadProgress.map((name, i) => (
+                                <span key={i} className="inline-flex items-center gap-1 text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                                    <Loader2 size={10} className="animate-spin" />
+                                    {name.length > 20 ? name.slice(0, 18) + '...' : name}
+                                </span>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 <div className="pt-2 sm:pt-4">
                     <button
                         type="submit"
-                        disabled={loading || uploading}
+                        disabled={loading || uploadingCount > 0}
                         className="w-full bg-primary text-white py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg hover:bg-green-700 transition-all shadow-lg hover:shadow-green-200/50 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed transform active:scale-95 min-h-[48px] sm:min-h-auto touch-manipulation"
                     >
                         {loading ? (
