@@ -19,6 +19,7 @@ const server_1 = require("../server");
 const emailService_1 = require("../services/emailService");
 const google_auth_library_1 = require("google-auth-library");
 const client = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+// JWT secret (30 days token expiration)
 const SECRET_KEY = process.env.JWT_SECRET || 'supersecretkey';
 const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {

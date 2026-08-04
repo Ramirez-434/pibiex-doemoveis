@@ -19,7 +19,8 @@ const EditItem = () => {
         description: '',
         category: '',
         condition: '',
-        images: [] as string[]
+        images: [] as string[],
+        quantity: 1,
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -36,7 +37,8 @@ const EditItem = () => {
                     description: item.description,
                     category: item.category,
                     condition: item.condition,
-                    images: item.images || []
+                    images: item.images || [],
+                    quantity: item.quantity || 1,
                 });
             } catch (err: any) {
                 setError('Erro ao carregar os dados do item.');
@@ -187,6 +189,25 @@ const EditItem = () => {
                                 </button>
                             ))}
                         </div>
+                    </div>
+                </div>
+
+                {/* ── Quantidade ── */}
+                <div>
+                    <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2">Quantidade disponível <span className="text-red-500">*</span></label>
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setFormData(p => ({ ...p, quantity: Math.max(1, p.quantity - 1) }))}
+                            className="w-11 h-11 rounded-xl border-2 border-gray-300 font-bold text-xl text-gray-600 hover:border-primary hover:text-primary transition-all flex items-center justify-center"
+                        >−</button>
+                        <span className="w-12 text-center font-bold text-2xl text-gray-800">{formData.quantity}</span>
+                        <button
+                            type="button"
+                            onClick={() => setFormData(p => ({ ...p, quantity: Math.min(99, p.quantity + 1) }))}
+                            className="w-11 h-11 rounded-xl border-2 border-gray-300 font-bold text-xl text-gray-600 hover:border-primary hover:text-primary transition-all flex items-center justify-center"
+                        >+</button>
+                        <span className="text-xs text-gray-400 ml-1">unidade(s)</span>
                     </div>
                 </div>
 

@@ -238,7 +238,7 @@ export const rejectRequest = async (req: AuthRequest, res: Response): Promise<vo
 
         await prisma.message.create({
             data: {
-                content: "Sua solicitação foi recusada pelo doador. Continue procurando em nosso catálogo!",
+                content: "Essa foi por pouco, o item solicitado foi doado para outra pessoa.",
                 type: "SYSTEM",
                 requestId: id,
                 senderId: userId

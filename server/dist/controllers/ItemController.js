@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateItem = exports.getPublicStats = exports.deleteItem = exports.createItem = exports.getItemById = exports.getItems = void 0;
+exports.postReceivedPhoto = exports.updateItem = exports.getPublicStats = exports.deleteItem = exports.createItem = exports.getItemById = exports.getItems = void 0;
 const server_1 = require("../server");
 const types_1 = require("../types");
 const getItems = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -87,7 +87,7 @@ exports.getItemById = getItemById;
 const createItem = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
-        const { title, description, category, condition, images } = req.body;
+        const { title, description, category, condition, images, quantity } = req.body;
         const donorId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId;
         if (!donorId) {
             res.status(401).json({ error: 'Unauthorized' });
@@ -100,6 +100,7 @@ const createItem = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 category: category,
                 condition: condition,
                 images: JSON.stringify(images || []),
+                quantity: quantity ? Number(quantity) : 1,
                 donorId,
             },
         });
@@ -166,7 +167,7 @@ const updateItem = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     var _a;
     try {
         const { id } = req.params;
-        const { title, description, category, condition, images } = req.body;
+        const { title, description, category, condition, images, quantity } = req.body;
         const donorId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId;
         if (!donorId) {
             res.status(401).json({ error: 'Unauthorized' });
@@ -193,6 +194,7 @@ const updateItem = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 category,
                 condition,
                 images: JSON.stringify(images),
+                quantity: quantity ? Number(quantity) : item.quantity,
             },
         });
         res.json(Object.assign(Object.assign({}, updatedItem), { images: JSON.parse(updatedItem.images) }));
@@ -203,3 +205,42 @@ const updateItem = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.updateItem = updateItem;
+const postReceivedPhoto = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const { id } = req.params;
+        const { photoUrl } = req.body;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId;
+        if (!userId) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
+        if (!photoUrl) {
+            res.status(400).json({ error: 'photoUrl é obrigatório' });
+            return;
+        }
+        const item = yield server_1.prisma.item.findUnique({ where: { id } });
+        if (!item) {
+            res.status(404).json({ error: 'Item não encontrado' });
+            return;
+        }
+        // Apenas o beneficiário aprovado pode postar a foto
+        const approvedRequest = yield server_1.prisma.donationRequest.findFirst({
+            where: { itemId: id, beneficiaryId: userId, status: 'APPROVED' },
+        });
+        if (!approvedRequest) {
+            res.status(403).json({ error: 'Apenas o beneficiário aprovado pode postar a foto' });
+            return;
+        }
+        const updated = yield server_1.prisma.item.update({
+            where: { id },
+            data: { receivedPhoto: photoUrl },
+        });
+        res.json({ receivedPhoto: updated.receivedPhoto });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Erro ao salvar foto' });
+    }
+});
+exports.postReceivedPhoto = postReceivedPhoto;

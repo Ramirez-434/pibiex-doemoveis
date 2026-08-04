@@ -213,7 +213,7 @@ const rejectRequest = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         });
         yield server_1.prisma.message.create({
             data: {
-                content: "Sua solicitação foi recusada pelo doador. Continue procurando em nosso catálogo!",
+                content: "Essa foi por pouco, o item solicitado foi doado para outra pessoa.",
                 type: "SYSTEM",
                 requestId: id,
                 senderId: userId

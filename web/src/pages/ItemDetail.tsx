@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { MapPin, AlertCircle, ArrowLeft, Calendar, Share2, Heart, CheckCircle2, Package, Tag, Sparkles, Send } from 'lucide-react';
+import { MapPin, AlertCircle, ArrowLeft, Calendar, Share2, Heart, CheckCircle2, Package, Tag, Sparkles, Send, Camera, Loader2, Trash2, MessageSquare, Hash } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import imageCompression from 'browser-image-compression';
 import api from '../services/api';
 
 interface Item {
@@ -14,11 +15,20 @@ interface Item {
     status: string;
     createdAt: string;
     donorId: string;
+    quantity?: number;
+    receivedPhoto?: string;
     donor: {
         name: string;
         city: string;
         state: string;
     };
+}
+
+interface Comment {
+    id: string;
+    content: string;
+    createdAt: string;
+    author: { id: string; name: string; avatar?: string };
 }
 
 const conditionConfig: Record<string, { color: string; bg: string; icon: string }> = {
@@ -49,8 +59,15 @@ const ItemDetail = () => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [activeImage, setActiveImage] = useState(0);
     const [liked, setLiked] = useState(false);
+    // Comments
+    const [comments, setComments] = useState<Comment[]>([]);
+    const [commentText, setCommentText] = useState('');
+    const [submittingComment, setSubmittingComment] = useState(false);
+    // Received photo
+    const [uploadingPhoto, setUploadingPhoto] = useState(false);
+    const photoInputRef = useRef<HTMLInputElement>(null);
 
-    let user = null;
+    let user: any = null;
     try {
         const userStr = localStorage.getItem('user');
         if (userStr && userStr !== 'undefined') user = JSON.parse(userStr);
@@ -58,6 +75,7 @@ const ItemDetail = () => {
 
     useEffect(() => {
         fetchItem();
+        fetchComments();
     }, [id]);
 
     const fetchItem = async () => {
@@ -68,6 +86,56 @@ const ItemDetail = () => {
             console.error('Error fetching item:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchComments = async () => {
+        try {
+            const res = await api.get(`/items/${id}/comments`);
+            setComments(res.data);
+        } catch { /* ignore */ }
+    };
+
+    const handleSubmitComment = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!commentText.trim()) return;
+        setSubmittingComment(true);
+        try {
+            const res = await api.post(`/items/${id}/comments`, { content: commentText.trim() });
+            setComments(prev => [...prev, res.data]);
+            setCommentText('');
+        } catch (err: any) {
+            alert(err.response?.data?.error || 'Erro ao comentar');
+        } finally {
+            setSubmittingComment(false);
+        }
+    };
+
+    const handleDeleteComment = async (commentId: string) => {
+        try {
+            await api.delete(`/items/comments/${commentId}`);
+            setComments(prev => prev.filter(c => c.id !== commentId));
+        } catch { alert('Erro ao deletar comentário'); }
+    };
+
+    const handleReceivedPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploadingPhoto(true);
+        try {
+            const options = { maxSizeMB: 0.5, maxWidthOrHeight: 1200, useWebWorker: true };
+            const compressed = await imageCompression(file, options);
+            const fd = new FormData();
+            fd.append('image', compressed, compressed.name || 'photo.jpg');
+            const uploadRes = await api.post('/upload', fd);
+            const photoUrl = uploadRes.data.url;
+            await api.patch(`/items/${id}/received-photo`, { photoUrl });
+            setItem(prev => prev ? { ...prev, receivedPhoto: photoUrl } : prev);
+        } catch (err: any) {
+            alert(err.response?.data?.error || 'Erro ao enviar foto');
+        } finally {
+            setUploadingPhoto(false);
+            if (photoInputRef.current) photoInputRef.current.value = '';
         }
     };
 
@@ -233,12 +301,18 @@ const ItemDetail = () => {
                                     {item.title.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
                                 </h1>
 
-                                {/* Category */}
-                                <div className="flex items-center gap-2 mb-5">
+                                {/* Category + Quantity row */}
+                                <div className="flex items-center gap-2 flex-wrap mb-5">
                                     <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/8 text-primary text-xs font-semibold rounded-full border border-primary/20">
                                         <Tag size={11} />
                                         {item.category}
                                     </span>
+                                    {(item.quantity ?? 1) > 1 && (
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full border border-indigo-200">
+                                            <Hash size={11} />
+                                            {item.quantity} unidades disponíveis
+                                        </span>
+                                    )}
                                 </div>
 
                                 {/* Location */}
@@ -322,6 +396,140 @@ const ItemDetail = () => {
                             </div>
                         </div>
                     </div>
+                </div>
+
+                {/* ─── Foto pós-doação ─── */}
+                {item.status === 'DONATED' && (
+                    <div className="mt-8 bg-white rounded-3xl shadow-lg border border-gray-100 p-6 lg:p-10 animate-fade-in-up">
+                        <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <Camera size={20} className="text-emerald-500" />
+                            Foto do Produto Recebido
+                        </h2>
+
+                        {item.receivedPhoto ? (
+                            <div className="rounded-2xl overflow-hidden border border-gray-100 shadow-md">
+                                <img src={item.receivedPhoto} alt="Produto recebido" className="w-full max-h-96 object-contain bg-gray-50" />
+                                <p className="text-xs text-gray-400 text-center py-2 bg-gray-50">📸 Foto enviada pelo beneficiário</p>
+                            </div>
+                        ) : (
+                            <div>
+                                {/* Beneficiário pode postar a foto */}
+                                {user && (
+                                    <div>
+                                        <div className="border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center mb-4">
+                                            <Camera size={36} className="text-gray-300 mx-auto mb-3" />
+                                            <p className="text-gray-500 text-sm">Nenhuma foto publicada ainda.</p>
+                                            <p className="text-gray-400 text-xs mt-1">Se você recebeu este item, compartilhe uma foto!</p>
+                                        </div>
+                                        <label className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm cursor-pointer transition-all ${
+                                            uploadingPhoto
+                                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                : 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                                        }`}>
+                                            {uploadingPhoto ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}
+                                            {uploadingPhoto ? 'Enviando foto...' : 'Enviar minha foto do produto'}
+                                            <input
+                                                ref={photoInputRef}
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                disabled={uploadingPhoto}
+                                                onChange={handleReceivedPhotoUpload}
+                                            />
+                                        </label>
+                                    </div>
+                                )}
+                                {!user && (
+                                    <p className="text-gray-400 text-sm text-center py-6">Nenhuma foto publicada ainda.</p>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* ─── Comentários ─── */}
+                <div className="mt-8 bg-white rounded-3xl shadow-lg border border-gray-100 p-6 lg:p-10 animate-fade-in-up">
+                    <h2 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                        <MessageSquare size={20} className="text-primary" />
+                        Comentários
+                        {comments.length > 0 && (
+                            <span className="ml-1 px-2 py-0.5 bg-primary/10 text-primary text-xs font-bold rounded-full">{comments.length}</span>
+                        )}
+                    </h2>
+
+                    {/* Lista de comentários */}
+                    {comments.length === 0 ? (
+                        <p className="text-gray-400 text-sm text-center py-8">Seja o primeiro a comentar! 💬</p>
+                    ) : (
+                        <div className="space-y-4 mb-6">
+                            {comments.map(comment => (
+                                <div key={comment.id} className="flex gap-3 group">
+                                    <div className={`w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold text-sm shadow-sm bg-gradient-to-br ${avatarColors[comment.author.name.charCodeAt(0) % avatarColors.length]} overflow-hidden`}>
+                                        {comment.author.avatar
+                                            ? <img src={comment.author.avatar} alt="" className="w-full h-full object-cover" />
+                                            : comment.author.name.charAt(0).toUpperCase()
+                                        }
+                                    </div>
+                                    <div className="flex-1 bg-gray-50 rounded-2xl px-4 py-3 border border-gray-100">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className="font-semibold text-sm text-gray-800">{comment.author.name}</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[11px] text-gray-400">
+                                                    {new Date(comment.createdAt).toLocaleDateString('pt-BR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })}
+                                                </span>
+                                                {user?.id === comment.author.id && (
+                                                    <button
+                                                        onClick={() => handleDeleteComment(comment.id)}
+                                                        className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-all p-0.5 rounded"
+                                                        title="Deletar comentário"
+                                                    >
+                                                        <Trash2 size={13} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <p className="text-gray-600 text-sm leading-relaxed">{comment.content}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Campo de comentário */}
+                    {user ? (
+                        <form onSubmit={handleSubmitComment} className="flex gap-3 items-end">
+                            <div className={`w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold text-sm shadow-sm bg-gradient-to-br ${avatarColors[user.name?.charCodeAt(0) % avatarColors.length]} overflow-hidden`}>
+                                {user.avatar
+                                    ? <img src={user.avatar} alt="" className="w-full h-full object-cover" />
+                                    : user.name?.charAt(0).toUpperCase()
+                                }
+                            </div>
+                            <div className="flex-1 flex gap-2">
+                                <textarea
+                                    value={commentText}
+                                    onChange={e => setCommentText(e.target.value)}
+                                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmitComment(e as any); }}}
+                                    rows={1}
+                                    maxLength={500}
+                                    placeholder="Escreva um comentário..."
+                                    className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none resize-none font-medium text-gray-700 text-sm transition-all"
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={submittingComment || !commentText.trim()}
+                                    className="p-2.5 bg-primary text-white rounded-xl hover:bg-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 self-end"
+                                >
+                                    {submittingComment ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+                                </button>
+                            </div>
+                        </form>
+                    ) : (
+                        <div className="text-center py-4 border-t border-gray-100">
+                            <p className="text-gray-500 text-sm">
+                                <Link to="/login" className="text-primary font-semibold hover:underline">Faça login</Link> para comentar
+                            </p>
+                        </div>
+                    )}
                 </div>
             </div>
 

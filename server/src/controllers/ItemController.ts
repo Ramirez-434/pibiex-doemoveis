@@ -90,7 +90,7 @@ export const getItemById = async (req: Request, res: Response): Promise<void> =>
 
 export const createItem = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const { title, description, category, condition, images } = req.body;
+        const { title, description, category, condition, images, quantity } = req.body;
         const donorId = req.user?.userId;
 
         if (!donorId) {
@@ -105,6 +105,7 @@ export const createItem = async (req: AuthRequest, res: Response): Promise<void>
                 category: category as string,
                 condition: condition as string,
                 images: JSON.stringify(images || []),
+                quantity: quantity ? Number(quantity) : 1,
                 donorId,
             },
         });
@@ -176,7 +177,7 @@ export const getPublicStats = async (req: Request, res: Response): Promise<void>
 export const updateItem = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params as { id: string };
-        const { title, description, category, condition, images } = req.body;
+        const { title, description, category, condition, images, quantity } = req.body;
         const donorId = req.user?.userId;
 
         if (!donorId) {
@@ -209,6 +210,7 @@ export const updateItem = async (req: AuthRequest, res: Response): Promise<void>
                 category,
                 condition,
                 images: JSON.stringify(images),
+                quantity: quantity ? Number(quantity) : item.quantity,
             },
         });
 
@@ -216,5 +218,48 @@ export const updateItem = async (req: AuthRequest, res: Response): Promise<void>
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+export const postReceivedPhoto = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params as { id: string };
+        const { photoUrl } = req.body;
+        const userId = req.user?.userId;
+
+        if (!userId) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
+
+        if (!photoUrl) {
+            res.status(400).json({ error: 'photoUrl é obrigatório' });
+            return;
+        }
+
+        const item = await prisma.item.findUnique({ where: { id } });
+        if (!item) {
+            res.status(404).json({ error: 'Item não encontrado' });
+            return;
+        }
+
+        // Apenas o beneficiário aprovado pode postar a foto
+        const approvedRequest = await (prisma as any).donationRequest.findFirst({
+            where: { itemId: id, beneficiaryId: userId, status: 'APPROVED' },
+        });
+        if (!approvedRequest) {
+            res.status(403).json({ error: 'Apenas o beneficiário aprovado pode postar a foto' });
+            return;
+        }
+
+        const updated = await prisma.item.update({
+            where: { id },
+            data: { receivedPhoto: photoUrl },
+        });
+
+        res.json({ receivedPhoto: updated.receivedPhoto });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Erro ao salvar foto' });
     }
 };

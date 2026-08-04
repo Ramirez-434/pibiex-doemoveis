@@ -7,6 +7,7 @@ interface ItemProps {
     title: string;
     images: string[];
     condition: string;
+    quantity?: number;
     donor: {
         city: string;
         state: string;
@@ -44,6 +45,14 @@ const ItemCard = ({ item }: { item: ItemProps }) => {
                         {item.condition}
                     </span>
                 </div>
+
+                {(item.quantity ?? 1) > 1 && (
+                    <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10">
+                        <span className="px-2 sm:px-3 py-1 text-xs font-bold rounded-full bg-indigo-500/90 text-white shadow-lg backdrop-blur-md border border-white/20">
+                            ×{item.quantity} un.
+                        </span>
+                    </div>
+                )}
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3 sm:p-6">
                     <span className="text-white text-xs sm:text-sm font-medium flex items-center gap-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-300">

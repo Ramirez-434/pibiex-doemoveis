@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, ArrowRight, Upload, Loader2 } from 'lucide-react';
+import { X, ArrowRight, Upload, Loader2, MapPin } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
+import axios from 'axios';
 import api from '../../services/api';
 
 const categories = ['ELETRONICOS', 'ROUPAS', 'MOVEIS', 'LIVROS', 'UTENSÍLIOS', 'BRINQUEDOS', 'ESPORTES', 'SAUDE', 'OUTROS'];
@@ -13,13 +14,22 @@ const NewItem = () => {
     const [uploadingCount, setUploadingCount] = useState(0); // quantas imagens estão subindo
     const [uploadProgress, setUploadProgress] = useState<string[]>([]); // nomes dos arquivos em progresso
     const [error, setError] = useState('');
+    const storedUser = (() => {
+        try { const u = localStorage.getItem('user'); return u ? JSON.parse(u) : {}; } catch { return {}; }
+    })();
+
     const [formData, setFormData] = useState({
         title: '',
         description: '',
         category: '',
         condition: '',
-        images: [] as string[]
+        images: [] as string[],
+        city: storedUser.city || '',
+        state: storedUser.state || '',
+        cep: '',
+        quantity: 1,
     });
+    const [cepLoading, setCepLoading] = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -84,9 +94,30 @@ const NewItem = () => {
         setFormData({ ...formData, images: newImages });
     };
 
+    const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const raw = e.target.value;
+        setFormData(prev => ({ ...prev, cep: raw }));
+        const clean = raw.replace(/\D/g, '');
+        if (clean.length === 8) {
+            setCepLoading(true);
+            try {
+                const res = await axios.get(`https://viacep.com.br/ws/${clean}/json/`, { timeout: 3000 });
+                if (res.data && !res.data.erro) {
+                    setFormData(prev => ({ ...prev, city: res.data.localidade, state: res.data.uf }));
+                }
+            } catch { /* silently ignore */ }
+            finally { setCepLoading(false); }
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+
+        if (!formData.city.trim()) {
+            setError('Informe a cidade do item.');
+            return;
+        }
 
         if (formData.images.length === 0) {
             setError('Adicione pelo menos uma imagem do item.');
@@ -96,7 +127,19 @@ const NewItem = () => {
         setLoading(true);
 
         try {
-            await api.post('/items', formData);
+            // Atualiza cidade/estado no perfil do doador
+            const updatedUser = { ...storedUser, city: formData.city.trim(), state: formData.state.trim() };
+            await api.patch('/auth/profile', { city: formData.city.trim(), state: formData.state.trim() });
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+
+            await api.post('/items', {
+                title: formData.title,
+                description: formData.description,
+                category: formData.category,
+                condition: formData.condition,
+                images: formData.images,
+                quantity: formData.quantity,
+            });
             navigate('/painel/minhas-doacoes');
         } catch (err: any) {
             setError(err.response?.data?.error || 'Erro ao criar doação.');
@@ -168,6 +211,66 @@ const NewItem = () => {
                             ))}
                         </div>
                     </div>
+                </div>
+
+                {/* ── Quantidade ── */}
+                <div>
+                    <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2">Quantidade disponível <span className="text-red-500">*</span></label>
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setFormData(p => ({ ...p, quantity: Math.max(1, p.quantity - 1) }))}
+                            className="w-11 h-11 rounded-xl border-2 border-gray-300 font-bold text-xl text-gray-600 hover:border-primary hover:text-primary transition-all flex items-center justify-center"
+                        >−</button>
+                        <span className="w-12 text-center font-bold text-2xl text-gray-800">{formData.quantity}</span>
+                        <button
+                            type="button"
+                            onClick={() => setFormData(p => ({ ...p, quantity: Math.min(99, p.quantity + 1) }))}
+                            className="w-11 h-11 rounded-xl border-2 border-gray-300 font-bold text-xl text-gray-600 hover:border-primary hover:text-primary transition-all flex items-center justify-center"
+                        >+</button>
+                        <span className="text-xs text-gray-400 ml-1">unidade(s)</span>
+                    </div>
+                </div>
+                <div>
+                    <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2 flex items-center gap-1.5">
+                        <MapPin size={14} className="text-primary" />
+                        Localização do Item <span className="text-red-500">*</span>
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="relative">
+                            <input
+                                type="text"
+                                name="cep"
+                                value={formData.cep}
+                                onChange={handleCepChange}
+                                maxLength={9}
+                                className="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all font-medium text-gray-800 text-base min-h-[44px] touch-manipulation"
+                                placeholder="CEP (opcional)"
+                            />
+                            {cepLoading && (
+                                <Loader2 size={14} className="animate-spin text-primary absolute right-3 top-1/2 -translate-y-1/2" />
+                            )}
+                        </div>
+                        <input
+                            type="text"
+                            name="city"
+                            value={formData.city}
+                            onChange={handleChange}
+                            className="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all font-medium text-gray-800 text-base min-h-[44px] touch-manipulation"
+                            placeholder="Cidade *"
+                            required
+                        />
+                        <input
+                            type="text"
+                            name="state"
+                            value={formData.state}
+                            onChange={handleChange}
+                            maxLength={2}
+                            className="w-full px-4 py-3 sm:py-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all font-medium text-gray-800 text-base min-h-[44px] touch-manipulation uppercase"
+                            placeholder="UF"
+                        />
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1.5">Digite o CEP para preencher automaticamente, ou informe a cidade manualmente.</p>
                 </div>
 
                 <div>
