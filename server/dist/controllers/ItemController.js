@@ -21,7 +21,7 @@ const getItems = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const state = safeParam(req.query.state);
         const city = safeParam(req.query.city);
         const where = {
-            status: types_1.ItemStatus.AVAILABLE,
+            status: { in: [types_1.ItemStatus.AVAILABLE, types_1.ItemStatus.DONATED] },
             deletedAt: null,
         };
         if (category) {
@@ -52,7 +52,10 @@ const getItems = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const items = yield server_1.prisma.item.findMany({
             where,
             take: limit ? Number(limit) : undefined,
-            orderBy: { createdAt: 'desc' },
+            orderBy: [
+                { status: 'asc' }, // AVAILABLE vem antes de DONATED
+                { createdAt: 'desc' }
+            ],
             include: { donor: { select: { name: true, city: true, state: true } } }
         });
         // Parse images JSON string back to array

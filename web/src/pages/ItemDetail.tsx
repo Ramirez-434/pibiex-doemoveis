@@ -223,7 +223,7 @@ const ItemDetail = () => {
                                     <img
                                         src={item.images[activeImage]}
                                         alt={item.title}
-                                        className="w-full h-full object-contain transition-all duration-500"
+                                        className={`w-full h-full object-contain transition-all duration-500 ${item.status === 'DONATED' ? 'grayscale opacity-80' : ''}`}
                                     />
                                 ) : (
                                     <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 gap-3">
@@ -237,8 +237,8 @@ const ItemDetail = () => {
 
                                 {/* Status badge */}
                                 {item.status !== 'AVAILABLE' && (
-                                    <div className="absolute top-4 left-4 px-3 py-1.5 bg-gray-900/80 backdrop-blur-sm text-white text-xs font-bold rounded-full uppercase tracking-wider">
-                                        Indisponível
+                                    <div className="absolute top-4 left-4 px-3.5 py-1.5 bg-gray-900/85 backdrop-blur-sm text-white text-xs font-bold rounded-full uppercase tracking-wider flex items-center gap-1.5">
+                                        {item.status === 'DONATED' ? '✓ Já Doado' : 'Indisponível'}
                                     </div>
                                 )}
 
@@ -359,9 +359,9 @@ const ItemDetail = () => {
                             {/* ─── Action buttons ─── */}
                             <div className="p-6 lg:px-10 lg:pb-10 border-t border-gray-50 space-y-3">
                                 {item.status !== 'AVAILABLE' ? (
-                                    <div className="w-full py-4 bg-gray-100 text-gray-400 rounded-2xl font-bold text-center flex items-center justify-center gap-2 border border-gray-200">
-                                        <AlertCircle size={18} />
-                                        Item Indisponível
+                                    <div className="w-full py-4 bg-gray-100 text-gray-500 rounded-2xl font-bold text-center flex items-center justify-center gap-2 border border-gray-200">
+                                        {item.status === 'DONATED' ? <CheckCircle2 size={18} className="text-emerald-600" /> : <AlertCircle size={18} />}
+                                        {item.status === 'DONATED' ? 'Este Item Já Foi Doado' : 'Item Indisponível'}
                                     </div>
                                 ) : user?.id === item.donorId ? (
                                     <div className="w-full py-4 bg-blue-50 text-blue-600 rounded-2xl font-bold text-center border border-blue-100">

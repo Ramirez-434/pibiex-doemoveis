@@ -16,7 +16,7 @@ export const getItems = async (req: Request, res: Response): Promise<void> => {
         const city   = safeParam(req.query.city);
 
         const where: any = {
-            status: ItemStatus.AVAILABLE,
+            status: { in: [ItemStatus.AVAILABLE, ItemStatus.DONATED] },
             deletedAt: null,
         };
 
@@ -51,7 +51,10 @@ export const getItems = async (req: Request, res: Response): Promise<void> => {
         const items = await prisma.item.findMany({
             where,
             take: limit ? Number(limit) : undefined,
-            orderBy: { createdAt: 'desc' },
+            orderBy: [
+                { status: 'asc' }, // AVAILABLE vem antes de DONATED
+                { createdAt: 'desc' }
+            ],
             include: { donor: { select: { name: true, city: true, state: true } } }
         });
 
